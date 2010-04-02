@@ -125,35 +125,38 @@ static const char *gravity_type(int gravity) {
 - (void) grab_events
 {
     int i, code;
-
+    
     for (i = 1; i <= 3; i++)
     {
-	XGrabButton (x_dpy, i, AnyModifier, _id, False,
-		     X_CLIENT_BUTTON_GRAB_EVENTS, GrabModeSync,
-		     GrabModeSync, None, None);
+        XGrabButton (x_dpy, i, AnyModifier, _id, False,
+                     X_CLIENT_BUTTON_GRAB_EVENTS, GrabModeSync,
+                     GrabModeSync, None, None);
     }
-
+    
     code = XKeysymToKeycode (x_dpy, XK_grave);
     if (code != 0)
     {
-	XGrabKey (x_dpy, code, x_meta_mod, _id,
-		  False, GrabModeSync, GrabModeSync);
+        // We can't use AnyModifier because of a bug replaying (eg, alt-` doesn't send dead_grave)
+        XGrabKey (x_dpy, code, ShiftMask | x_meta_mod, _id,
+                  False, GrabModeSync, GrabModeSync);
+        XGrabKey (x_dpy, code, x_meta_mod, _id,
+                  False, GrabModeSync, GrabModeSync);
     }
 }
 
 - (void) ungrab_events
 {
     int i, code;
-
+    
     for (i = 1; i <= 3; i++)
     {
-	XUngrabButton (x_dpy, i, AnyModifier, _id);
+        XUngrabButton (x_dpy, i, AnyModifier, _id);
     }
-
+    
     code = XKeysymToKeycode (x_dpy, XK_grave);
     if (code != 0)
     {
-	XUngrabKey (x_dpy, XK_grave, x_meta_mod, _id);
+        XUngrabKey (x_dpy, code, AnyModifier, _id);
     }
 }
 

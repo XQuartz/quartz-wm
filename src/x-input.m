@@ -160,7 +160,7 @@ x_event_button (XButtonEvent *e)
 	{
 	    if (!w->_click_through)
 	    {
-		XAllowEvents (x_dpy, AsyncBoth, e->time);
+		XAllowEvents (x_dpy, AsyncPointer, e->time);
 	    }
 	    else
 	    {
@@ -409,27 +409,24 @@ x_event_motion_notify (XMotionEvent *e)
 static void
 x_event_key (XKeyEvent *e)
 {
-    KeySym keysym;
+    int grave_code = XKeysymToKeycode (x_dpy, XK_grave);
 
-    if (e->type != KeyPress)
-	return;
-
-    keysym = XKeycodeToKeysym (x_dpy, e->keycode,
-			       e->state & ShiftMask ? 1 : 0);
-
-    switch (keysym)
+    if(grave_code != 0 && grave_code == e->keycode)
     {
-    case XK_grave:
-	next_window (e->time, FALSE);
-	break;
-
-    default:
-	XAllowEvents (x_dpy, ReplayKeyboard, e->time);
-	XUngrabKeyboard (x_dpy, e->time);
-	return;
+        if(e->state == (ShiftMask | x_meta_mod)) {
+            if(e->type == KeyPress)
+                next_window (e->time, TRUE);
+            XAllowEvents (x_dpy, AsyncKeyboard, e->time);
+            return;
+        } else if(e->state == x_meta_mod) {
+            if(e->type == KeyPress)
+                next_window (e->time, FALSE);
+            XAllowEvents (x_dpy, AsyncKeyboard, e->time);
+            return;
+        }
     }
-
-    XAllowEvents (x_dpy, AsyncBoth, e->time);
+    XAllowEvents (x_dpy, ReplayKeyboard, e->time);
+    XUngrabKeyboard (x_dpy, e->time);
 }
 
 static void
