@@ -134,7 +134,7 @@ static const char *gravity_type(int gravity) {
     }
     
     code = XKeysymToKeycode (x_dpy, XK_grave);
-    if (code != 0)
+    if (code != 0 && x_meta_mod != 0)
     {
         // We can't use AnyModifier because of a bug replaying (eg, alt-` doesn't send dead_grave)
         XGrabKey (x_dpy, code, ShiftMask | x_meta_mod, _id,

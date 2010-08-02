@@ -411,7 +411,7 @@ x_event_key (XKeyEvent *e)
 {
     int grave_code = XKeysymToKeycode (x_dpy, XK_grave);
 
-    if(grave_code != 0 && grave_code == e->keycode)
+    if(grave_code != 0 && grave_code == e->keycode && x_meta_mod != 0)
     {
         if(e->state == (ShiftMask | x_meta_mod)) {
             if(e->type == KeyPress)
