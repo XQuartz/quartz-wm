@@ -44,13 +44,10 @@ AC_SUBST(QUARTZWM_LIBS)
 AC_MSG_CHECKING(which object file to use for dok-support.o)
 case $host_os in
 	darwin[678]*)
-		DOCK_SUPPORT_O="dock-support-10.4.po"
-		;;
-	darwin9*)
-		DOCK_SUPPORT_O="dock-support-10.5.po" 
+		DOCK_SUPPORT_O="dock-support-10.4.o"
 		;;
 	darwin*)
-		DOCK_SUPPORT_O="dock-support-10.6.po"
+		DOCK_SUPPORT_O="dock-support-10.5.o" 
 		;;
 	*)
 		AC_ERROR([quartz-wm is not supported on your system.])
