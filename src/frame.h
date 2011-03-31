@@ -36,17 +36,46 @@
 
 #include "x11-geometry.h"
 
+#if XPLUGIN_VERSION < 4
+#warning "Old libXplugin version detected.  Some features may not be supported."
+
+typedef enum xp_frame_class_enum xp_frame_class;
+typedef enum xp_frame_attr_enum xp_frame_attr;
+
+#define XP_FRAME_CLASS_DECOR_LARGE          XP_FRAME_CLASS_DOCUMENT
+#define XP_FRAME_CLASS_DECOR_SMALL          XP_FRAME_CLASS_UTILITY
+#define XP_FRAME_CLASS_DECOR_NONE           XP_FRAME_CLASS_SPLASH
+#define XP_FRAME_CLASS_BEHAVIOR_MANAGED     (1 << 15)
+#define XP_FRAME_CLASS_BEHAVIOR_TRANSIENT   (1 << 16)
+#define XP_FRAME_CLASS_BEHAVIOR_STATIONARY  (1 << 17)
+
+#define XP_FRAME_ATTR_ACTIVE XP_FRAME_ACTIVE
+#define XP_FRAME_ATTR_URGENT XP_FRAME_URGENT
+#define XP_FRAME_ATTR_TITLE XP_FRAME_TITLE
+#define XP_FRAME_ATTR_PRELIGHT XP_FRAME_PRELIGHT
+#define XP_FRAME_ATTR_SHADED XP_FRAME_SHADED
+#define XP_FRAME_ATTR_CLOSE_BOX XP_FRAME_CLOSE_BOX
+#define XP_FRAME_ATTR_COLLAPSE XP_FRAME_COLLAPSE
+#define XP_FRAME_ATTR_ZOOM XP_FRAME_ZOOM
+#define XP_FRAME_ATTR_CLOSE_BOX_CLICKED XP_FRAME_CLOSE_BOX_CLICKED
+#define XP_FRAME_ATTR_COLLAPSE_BOX_CLICKED XP_FRAME_COLLAPSE_BOX_CLICKED
+#define XP_FRAME_ATTR_ZOOM_BOX_CLICKED XP_FRAME_ZOOM_BOX_CLICKED
+#define XP_FRAME_ATTR_GROW_BOX XP_FRAME_GROW_BOX
+
+#define XP_FRAME_ATTRS_ANY_BUTTON XP_FRAME_ANY_BUTTON
+#define XP_FRAME_ATTRS_ANY_CLICKED XP_FRAME_ANY_CLICKED
+#define XP_FRAME_ATTRS_POINTER XP_FRAME_POINTER_ATTRS
+#endif
+
 extern void draw_frame (int screen, Window id, X11Rect outer_r,
-			X11Rect inner_r, unsigned int class,
-			unsigned int attr, CFStringRef title);
-extern int frame_titlebar_height (unsigned int class);
-extern X11Rect frame_titlebar_rect (X11Rect outer_r, X11Rect inner_r,
-                                    unsigned int attr);
+			X11Rect inner_r, xp_frame_class class,
+			xp_frame_attr attr, CFStringRef title);
+extern int frame_titlebar_height (xp_frame_class class);
 extern X11Rect frame_tracking_rect (X11Rect outer_r, X11Rect inner_r,
-				   unsigned int attr, unsigned int class);
-extern X11Rect frame_growbox_rect (X11Rect outer_r, X11Rect inner_r,
-				  unsigned int attr, unsigned int class);
+                                   xp_frame_class class);
+extern X11Rect frame_growbox_rect (X11Rect outer_r, X11Rect inner_r, 
+                                   xp_frame_class class);
 extern unsigned int frame_hit_test (X11Rect outer_r, X11Rect inner_r,
-				    unsigned int class, X11Point p);
+				    xp_frame_class class, X11Point p);
 
 #endif /* XP_FRAME_H */

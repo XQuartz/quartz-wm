@@ -208,12 +208,12 @@ x_event_button (XButtonEvent *e)
 		pointer.down_attrs = [w hit_test_frame:p];
 
 		if ((pointer.down_attrs
-		     & (w->_frame_attr & XP_FRAME_ANY_BUTTON)) != 0)
+		     & (w->_frame_attr & XP_FRAME_ATTRS_ANY_BUTTON)) != 0)
 		{
 		    pointer.clicking = YES;
 		    XP_FRAME_ATTR_SET_CLICKED (w->_frame_attr,
 					    pointer.down_attrs
-					    & XP_FRAME_ANY_BUTTON);
+					    & XP_FRAME_ATTRS_ANY_BUTTON);
 		}
 		else
 		{
@@ -249,20 +249,20 @@ x_event_button (XButtonEvent *e)
             /* Only if it went pressed the same button it came released on */
             attrs &= pointer.down_attrs;
 
-		    if (attrs & XP_FRAME_CLOSE_BOX)
+		    if (attrs & XP_FRAME_ATTR_CLOSE_BOX)
 			[w do_close:e->time];
-		    else if (attrs & XP_FRAME_COLLAPSE)
+		    else if (attrs & XP_FRAME_ATTR_COLLAPSE)
 			[w do_collapse];
-		    else if (attrs & XP_FRAME_ZOOM)
+		    else if (attrs & XP_FRAME_ATTR_ZOOM)
 			[w do_zoom];
 		    
 		    XP_FRAME_ATTR_UNSET_CLICKED (w->_frame_attr,
-					      XP_FRAME_ANY_BUTTON);
+					      XP_FRAME_ATTRS_ANY_BUTTON);
 
 		    /* Update prelight bit, we ignored tracking events
 		       while clickiing. */
-		    w->_frame_attr &= ~XP_FRAME_PRELIGHT;
-		    w->_frame_attr |= attrs & XP_FRAME_PRELIGHT;
+		    w->_frame_attr &= ~XP_FRAME_ATTR_PRELIGHT;
+		    w->_frame_attr |= attrs & XP_FRAME_ATTR_PRELIGHT;
 
 		    pointer.clicking = NO;
 		}
@@ -360,18 +360,18 @@ x_event_motion_notify (XMotionEvent *e)
 	{
 	    attrs = [w hit_test_frame:wp];
 
-	    if ((attrs & XP_FRAME_ANY_BUTTON)
-		!= (pointer.down_attrs & XP_FRAME_ANY_BUTTON))
+	    if ((attrs & XP_FRAME_ATTRS_ANY_BUTTON)
+		!= (pointer.down_attrs & XP_FRAME_ATTRS_ANY_BUTTON))
 	    {
 		/* Moved off the button we clicked on, change its state. */
 
-		XP_FRAME_ATTR_UNSET_CLICKED (w->_frame_attr, XP_FRAME_ANY_BUTTON);
+		XP_FRAME_ATTR_UNSET_CLICKED (w->_frame_attr, XP_FRAME_ATTRS_ANY_BUTTON);
 	    }
 	    else
 	    {
 		XP_FRAME_ATTR_SET_CLICKED (w->_frame_attr, 
 					pointer.down_attrs
-					& XP_FRAME_ANY_BUTTON);
+					& XP_FRAME_ATTRS_ANY_BUTTON);
 	    }
 	}
 	else
@@ -563,9 +563,9 @@ x_event_crossing (XCrossingEvent *e)
 	    return;
 
 	if (e->type == EnterNotify)
-	    w->_frame_attr |= XP_FRAME_PRELIGHT;
+	    w->_frame_attr |= XP_FRAME_ATTR_PRELIGHT;
 	else if (e->type == LeaveNotify)
-	    w->_frame_attr &= ~XP_FRAME_PRELIGHT;
+	    w->_frame_attr &= ~XP_FRAME_ATTR_PRELIGHT;
 
 	[w decorate];
     }

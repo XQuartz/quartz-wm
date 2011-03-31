@@ -27,8 +27,30 @@
 
 #import "x-screen.h"
 #include "x-list.h"
+#include "frame.h"
 
 #include <X11/Xutil.h>
+
+/* These frame classes are internal to quartz-wm and are determined by
+ * examining _NET_WM_WINDOW_TYPE, _NET_WM_STATE, _MOTIF_WM_HINTS, and
+ * WM_TRANSIENT_FOR properties.
+ *
+ * These frame classes map to XP_FRAME_CLASS values as well as
+ * different behaviors in quartz-wm ()
+ */
+
+typedef enum {
+    QWM_WINDOW_CLASS_DOCUMENT,
+    QWM_WINDOW_CLASS_DIALOG,
+    QWM_WINDOW_CLASS_MODAL_DIALOG,
+    QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG,
+    QWM_WINDOW_CLASS_UTILITY,
+    QWM_WINDOW_CLASS_TOOLBAR,
+    QWM_WINDOW_CLASS_MENU,
+    QWM_WINDOW_CLASS_SPLASH,
+    QWM_WINDOW_CLASS_BORDERLESS,
+    QWM_WINDOW_CLASS_DESKTOP
+} qwm_window_class;
 
 @interface x_window : NSObject
 {
@@ -72,7 +94,9 @@
     XSizeHints _size_hints;
     long _size_hints_supplied;
 
-    unsigned _frame_class, _unzoomed_frame_class, _frame_attr;
+    qwm_window_class _window_class, _unzoomed_window_class;
+    xp_frame_attr  _frame_attr;
+
     int _frame_title_height;
 
     int _level;

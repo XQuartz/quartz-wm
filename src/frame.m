@@ -31,7 +31,7 @@
 #include <X11/extensions/applewm.h>
 
 int
-frame_titlebar_height (unsigned int class)
+frame_titlebar_height (xp_frame_class class)
 {
     short x, y, w, h;
 
@@ -41,23 +41,9 @@ frame_titlebar_height (unsigned int class)
     return h;
 }
 
-X11Rect
-frame_titlebar_rect (X11Rect inner_r, X11Rect outer_r, unsigned int attr)
-{
-    X11Rect r;
-
-    /* Titlebar rect in user space */
-    r.x = outer_r.x;
-    r.y = outer_r.height - inner_r.y;
-    r.width = outer_r.width;
-    r.height = outer_r.height - r.y;
-
-    return r;
-}
-
 void
 draw_frame (int screen, Window id, X11Rect outer_r, X11Rect inner_r,
-	    unsigned int class, unsigned int attr, CFStringRef title)
+	    xp_frame_class class, xp_frame_attr attr, CFStringRef title)
 {
     unsigned char title_bytes[512];
     CFIndex title_length;
@@ -83,8 +69,7 @@ draw_frame (int screen, Window id, X11Rect outer_r, X11Rect inner_r,
 }
 
 X11Rect
-frame_tracking_rect (X11Rect outer_r, X11Rect inner_r,
-		     unsigned int attr, unsigned int class)
+frame_tracking_rect (X11Rect outer_r, X11Rect inner_r, xp_frame_class class)
 {
     short x, y, w, h;
 
@@ -99,8 +84,7 @@ frame_tracking_rect (X11Rect outer_r, X11Rect inner_r,
 }
 
 X11Rect
-frame_growbox_rect (X11Rect outer_r, X11Rect inner_r,
-		    unsigned int attr, unsigned int class)
+frame_growbox_rect (X11Rect outer_r, X11Rect inner_r, xp_frame_class class)
 {
     short x, y, w, h;
 

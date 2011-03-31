@@ -884,12 +884,12 @@ static void prefs_reload_cb(CFRunLoopObserverRef observer,
             s = s_node->data;
             for(w_node = s->_window_list; w_node != NULL; w_node = w_node->next) {
                 w = w_node->data;
-                switch(w->_frame_class) {
-                    case XP_FRAME_CLASS_BORDERLESS:
-                    case XP_FRAME_CLASS_UTILITY:
-                    case XP_FRAME_CLASS_SPLASH:
-                    case XP_FRAME_CLASS_TOOLBAR:
-                    case XP_FRAME_CLASS_MENU:
+                switch(w->_window_class) {
+                    case QWM_WINDOW_CLASS_BORDERLESS:
+                    case QWM_WINDOW_CLASS_UTILITY:
+                    case QWM_WINDOW_CLASS_SPLASH:
+                    case QWM_WINDOW_CLASS_TOOLBAR:
+                    case QWM_WINDOW_CLASS_MENU:
                         break;
                     default:
                         w->_click_through = focus_click_through;

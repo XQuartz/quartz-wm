@@ -95,6 +95,28 @@ static const char *gravity_type(int gravity) {
 }
 #endif
 
+static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class) {
+    switch(class) {
+        case QWM_WINDOW_CLASS_DOCUMENT:
+        case QWM_WINDOW_CLASS_DIALOG:
+        case QWM_WINDOW_CLASS_MODAL_DIALOG:
+        case QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG:
+            return XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+        case QWM_WINDOW_CLASS_UTILITY:
+        case QWM_WINDOW_CLASS_TOOLBAR:
+        case QWM_WINDOW_CLASS_MENU:
+            return XP_FRAME_CLASS_DECOR_SMALL | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+        case QWM_WINDOW_CLASS_SPLASH:
+            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
+        case QWM_WINDOW_CLASS_BORDERLESS:
+            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
+        case QWM_WINDOW_CLASS_DESKTOP:
+            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
+        default:
+            return XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+    }
+}
+
 @implementation x_window
 
 #undef TRACE
@@ -384,49 +406,49 @@ static const char *gravity_type(int gravity) {
     if (_decorated)
         return;				/* too late */
     
-    if (class != XP_FRAME_CLASS_DOCUMENT)
+    if (class != QWM_WINDOW_CLASS_DOCUMENT)
         _in_window_menu = NO;
     
     switch (class) {
-        case XP_FRAME_CLASS_DIALOG:
-            _frame_attr &= ~XP_FRAME_ZOOM;
+        case QWM_WINDOW_CLASS_DIALOG:
+            _frame_attr &= ~XP_FRAME_ATTR_ZOOM;
             break;
             
-        case XP_FRAME_CLASS_MODAL_DIALOG:
-        case XP_FRAME_CLASS_SYSTEM_MODAL_DIALOG:
-            _frame_attr &= ~(XP_FRAME_ZOOM | XP_FRAME_COLLAPSE);
+        case QWM_WINDOW_CLASS_MODAL_DIALOG:
+        case QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG:
+            _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
             break;
             
-        case XP_FRAME_CLASS_MENU:
-        case XP_FRAME_CLASS_TOOLBAR:
-            _frame_attr &= ~(XP_FRAME_GROW_BOX | XP_FRAME_ZOOM | XP_FRAME_COLLAPSE);
+        case QWM_WINDOW_CLASS_MENU:
+        case QWM_WINDOW_CLASS_TOOLBAR:
+            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
             _level = AppleWMWindowLevelTornOff;
             _click_through = YES;
             _shadable = NO;
             break;
             
-        case XP_FRAME_CLASS_SPLASH:
+        case QWM_WINDOW_CLASS_SPLASH:
             _level = AppleWMWindowLevelFloating;
             _movable = NO;
             _click_through = YES;
             _shadable = NO;
             break;
             
-        case XP_FRAME_CLASS_UTILITY:
+        case QWM_WINDOW_CLASS_UTILITY:
             _level = AppleWMWindowLevelFloating;
             _click_through = YES;
             _shadable = NO;
             break;
             
-        case XP_FRAME_CLASS_BORDERLESS:
+        case QWM_WINDOW_CLASS_BORDERLESS:
             _click_through = YES;
             _shadable = NO;
-            _frame_attr &= ~XP_FRAME_GROW_BOX;
+            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
             break;
     }
     
-    _frame_class = class;
-    _frame_title_height = frame_titlebar_height(_frame_class);
+    _window_class = class;
+    _frame_title_height = frame_titlebar_height(qwm_window_class_to_xp_frame_class(_window_class));
 }
 
 /* Given the x/y/w/h from a ConfigureRequest, what is our frame's
@@ -509,8 +531,8 @@ static const char *gravity_type(int gravity) {
     XGetWindowAttributes(x_dpy, _id, &_xattr);
 
     /* Start with everything. */
-    _frame_attr  = (XP_FRAME_CLOSE_BOX | XP_FRAME_COLLAPSE
-                    | XP_FRAME_ZOOM | XP_FRAME_GROW_BOX);
+    _frame_attr  = (XP_FRAME_ATTR_CLOSE_BOX | XP_FRAME_ATTR_COLLAPSE
+                    | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
     _click_through = focus_click_through;
     _shadable = window_shading;
     _movable = YES;
@@ -518,7 +540,7 @@ static const char *gravity_type(int gravity) {
     _level = AppleWMWindowLevelNormal;
 
     /* Default to document windows. */
-    [self set_class:XP_FRAME_CLASS_DOCUMENT];
+    [self set_class:QWM_WINDOW_CLASS_DOCUMENT];
 
     /* The ordering here is chosen so that most authoritative should go last. */
     [self update_wm_name];
@@ -535,7 +557,7 @@ static const char *gravity_type(int gravity) {
     if ((_size_hints.flags & (PMinSize | PMaxSize)) == (PMinSize | PMaxSize) &&
         _size_hints.min_width >= _size_hints.max_width &&
         _size_hints.min_height >= _size_hints.max_height) {
-        _frame_attr &= ~XP_FRAME_GROW_BOX;
+        _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
     }
 
     XSetWindowBorderWidth (x_dpy, _id, 0);
@@ -839,7 +861,7 @@ static const char *gravity_type(int gravity) {
 	XSetWindowAttributes attr;
 
 	/* Initialize pointer tracking window for prelighting */
-	_tracking_rect = frame_tracking_rect(or, ir, _frame_attr, _frame_class);
+	_tracking_rect = frame_tracking_rect(or, ir, qwm_window_class_to_xp_frame_class(_window_class));
 	attr.override_redirect = True;
 	_tracking_id = XCreateWindow (x_dpy, _frame_id,
 				      _tracking_rect.x,
@@ -853,7 +875,7 @@ static const char *gravity_type(int gravity) {
     }
 
     if (_growbox_id == 0 && !_shaded && 
-        XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_GROW_BOX))
+        XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_ATTR_GROW_BOX))
     {
 	XSetWindowAttributes attr;
 	unsigned long attr_mask = 0;
@@ -868,7 +890,7 @@ static const char *gravity_type(int gravity) {
 	attr_mask |= (CWOverrideRedirect | CWColormap
 		      | CWBorderPixel | CWWinGravity);
 
-	_growbox_rect = frame_growbox_rect (or, ir, _frame_attr, _frame_class);
+	_growbox_rect = frame_growbox_rect (or, ir, qwm_window_class_to_xp_frame_class(_window_class));
 	_growbox_id = XCreateWindow (x_dpy, _frame_id,
 				     _growbox_rect.x,
 				     _growbox_rect.y,
@@ -880,7 +902,7 @@ static const char *gravity_type(int gravity) {
 	XMapRaised (x_dpy, _growbox_id);
 	XSelectInput (x_dpy, _growbox_id, X_GROWBOX_WINDOW_EVENTS);
     }
-    else if (_growbox_id != 0 && (!XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_GROW_BOX) || _shaded))
+    else if (_growbox_id != 0 && (!XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_ATTR_GROW_BOX) || _shaded))
     {
 	XDestroyWindow (x_dpy, _growbox_id);
 	_growbox_id = 0;
@@ -888,7 +910,7 @@ static const char *gravity_type(int gravity) {
     else if (_growbox_id != 0 && reposition)
     {
 #ifdef MORE_ROUNDTRIPS
-	_growbox_rect = frame_growbox_rect (or, ir, _frame_attr, _frame_class);
+	_growbox_rect = frame_growbox_rect (or, ir, qwm_window_class_to_xp_frame_class(_window_class));
 #else
 	_growbox_rect.x = or.width - _growbox_rect.width;
 	_growbox_rect.y = or.height - _growbox_rect.height;
@@ -1000,8 +1022,8 @@ static const char *gravity_type(int gravity) {
         x_list *node;
         for(node = _transients; node; node = node->next) {
             x_window *child = node->data;
-            if(child->_frame_class == XP_FRAME_CLASS_MODAL_DIALOG ||
-               child->_frame_class == XP_FRAME_CLASS_SYSTEM_MODAL_DIALOG) {
+            if(child->_window_class == QWM_WINDOW_CLASS_MODAL_DIALOG ||
+               child->_window_class == QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG) {
                 return YES;
             }
         }
@@ -1027,11 +1049,11 @@ static const char *gravity_type(int gravity) {
 
     [self update_inner_windows:NO outer:or inner:ir];
 
-    if ((frame_attr & XP_FRAME_CLOSE_BOX) && [self has_modal_descendents]) {
-        frame_attr &= ~XP_FRAME_CLOSE_BOX;
+    if ((frame_attr & XP_FRAME_ATTR_CLOSE_BOX) && [self has_modal_descendents]) {
+        frame_attr &= ~XP_FRAME_ATTR_CLOSE_BOX;
     }
 
-    draw_frame (_screen->_id, _frame_id, or, ir, _frame_class,
+    draw_frame (_screen->_id, _frame_id, or, ir, qwm_window_class_to_xp_frame_class(_window_class),
 		frame_attr, (CFStringRef) [self title]);
 
     _decorated = YES;
@@ -1170,7 +1192,7 @@ static const char *gravity_type(int gravity) {
              * have full control of the desktop, without the need for proxying
              * root window clicks. 
              */
-            class = XP_FRAME_CLASS_BORDERLESS;
+            class = QWM_WINDOW_CLASS_DESKTOP;
             _level = AppleWMWindowLevelDesktop;
             _click_through = YES;
             _shadable = NO;
@@ -1181,7 +1203,7 @@ static const char *gravity_type(int gravity) {
              */
             /* Leave Dock windows at normal level - avoids problems
              with tooltips and the KDE panel. 3205836. */
-            class = XP_FRAME_CLASS_BORDERLESS;
+            class = QWM_WINDOW_CLASS_BORDERLESS;
             _level = AppleWMWindowLevelDock;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_toolbar) {
             /* _NET_WM_WINDOW_TYPE_TOOLBAR and _NET_WM_WINDOW_TYPE_MENU indicate
@@ -1190,9 +1212,9 @@ static const char *gravity_type(int gravity) {
              * type may set the WM_TRANSIENT_FOR hint indicating the main
              * application window.
              */
-            class = XP_FRAME_CLASS_TOOLBAR;
+            class = QWM_WINDOW_CLASS_TOOLBAR;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_menu) {
-            class = XP_FRAME_CLASS_MENU;
+            class = QWM_WINDOW_CLASS_MENU;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_utility) {
             /* _NET_WM_WINDOW_TYPE_UTILITY indicates a small persistent utility
              * window, such as a palette or toolbox. It is distinct from type
@@ -1202,19 +1224,19 @@ static const char *gravity_type(int gravity) {
              * while they're working. Windows of this type may set the
              * WM_TRANSIENT_FOR hint indicating the main application window.
              */
-            class = XP_FRAME_CLASS_UTILITY;
+            class = QWM_WINDOW_CLASS_UTILITY;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_splash) {
             /* _NET_WM_WINDOW_TYPE_SPLASH indicates that the window is a splash
              * screen displayed as an application is starting up. 
              */
-            class = XP_FRAME_CLASS_SPLASH;
+            class = QWM_WINDOW_CLASS_SPLASH;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dialog) {
             /* _NET_WM_WINDOW_TYPE_DIALOG indicates that this is a dialog window.
              * If _NET_WM_WINDOW_TYPE is not set, then windows with
              * WM_TRANSIENT_FOR set MUST be taken as this type.
              */
-            class = XP_FRAME_CLASS_DIALOG;
-/*      We set class = XP_FRAME_CLASS_DOCUMENT by default, so this is unneccessary.
+            class = QWM_WINDOW_CLASS_DIALOG;
+/*      We set class = QWM_WINDOW_CLASS_DOCUMENT by default, so this is unneccessary.
  *      Furthermore, it causes the motif borderless hint to be ignored if the window
  *      is also set _NET_WM_WINDOW_TYPE_NORMAL... which is common.  See
  *      http://xquartz.macosforge.org/trac/ticket/194
@@ -1224,7 +1246,7 @@ static const char *gravity_type(int gravity) {
 //             * top-level window. Windows with neither _NET_WM_WINDOW_TYPE nor
 //             * WM_TRANSIENT_FOR set MUST be taken as this type. 
 //             */
-//            class = XP_FRAME_CLASS_DOCUMENT;
+//            class = QWM_WINDOW_CLASS_DOCUMENT;
         }
     }
     
@@ -1243,7 +1265,7 @@ static const char *gravity_type(int gravity) {
 
     for (i = 0; i < n; i++)  {
         if ((Atom)_atoms[i] == atoms.net_wm_state_modal)
-            [self set_class:XP_FRAME_CLASS_MODAL_DIALOG];
+            [self set_class:QWM_WINDOW_CLASS_MODAL_DIALOG];
         else if ((Atom)_atoms[i] == atoms.net_wm_state_shaded)
             shaded = YES;
         else if ((Atom)_atoms[i] == atoms.net_wm_state_skip_taskbar)
@@ -1261,12 +1283,12 @@ static const char *gravity_type(int gravity) {
     else if (!_shaded && shaded && _shadable)
         [self do_shade:CurrentTime];
 
-    if(maximized && (_frame_attr & XP_FRAME_ZOOM))
+    if(maximized && (_frame_attr & XP_FRAME_ATTR_ZOOM))
         [self do_maximize];
 
     if(_fullscreen && !fullscreen)
         [self do_fullscreen:NO];
-    else if(!_fullscreen && fullscreen && (_frame_attr & XP_FRAME_ZOOM))
+    else if(!_fullscreen && fullscreen && (_frame_attr & XP_FRAME_ATTR_ZOOM))
         [self do_fullscreen:YES];
 }
 
@@ -1275,8 +1297,8 @@ static const char *gravity_type(int gravity) {
     long _atoms[32];
     int n_atoms = 0;
     
-    if(_frame_class == XP_FRAME_CLASS_MODAL_DIALOG ||
-        _frame_class == XP_FRAME_CLASS_SYSTEM_MODAL_DIALOG)
+    if(_window_class == QWM_WINDOW_CLASS_MODAL_DIALOG ||
+        _window_class == QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG)
         _atoms[n_atoms++] = atoms.net_wm_state_modal;
     if(_minimized)
         _atoms[n_atoms++] = atoms.net_wm_state_hidden;
@@ -1345,19 +1367,19 @@ static const char *gravity_type(int gravity) {
     
     if (_movable)
         _atoms[n_atoms++] = atoms.net_wm_action_move;
-    if (_frame_attr & XP_FRAME_GROW_BOX)
+    if (_frame_attr & XP_FRAME_ATTR_GROW_BOX)
         _atoms[n_atoms++] = atoms.net_wm_action_resize;
-    if (_frame_attr & XP_FRAME_COLLAPSE)
+    if (_frame_attr & XP_FRAME_ATTR_COLLAPSE)
         _atoms[n_atoms++] = atoms.net_wm_action_minimize;
     if (_shadable)
         _atoms[n_atoms++] = atoms.net_wm_action_shade;
-    if (_frame_attr & XP_FRAME_ZOOM)
+    if (_frame_attr & XP_FRAME_ATTR_ZOOM)
     {
         _atoms[n_atoms++] = atoms.net_wm_action_maximize_horz;
         _atoms[n_atoms++] = atoms.net_wm_action_maximize_vert;
         _atoms[n_atoms++] = atoms.net_wm_action_fullscreen;
     }
-    if ((_frame_attr & XP_FRAME_CLOSE_BOX) && ![self has_modal_descendents]) {
+    if ((_frame_attr & XP_FRAME_ATTR_CLOSE_BOX) && ![self has_modal_descendents]) {
         _atoms[n_atoms++] = atoms.net_wm_action_close;
     }
     
@@ -1381,20 +1403,20 @@ static const char *gravity_type(int gravity) {
 	/* hints[1] = functional hints */
 
 	if (!(hints[1] & 3))
-	    _frame_attr &= ~XP_FRAME_GROW_BOX;
+	    _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
 	if (!(hints[1] & 9))
-	    _frame_attr &= ~XP_FRAME_COLLAPSE;
+	    _frame_attr &= ~XP_FRAME_ATTR_COLLAPSE;
 	if (!(hints[1] & 17))
-	    _frame_attr &= ~XP_FRAME_ZOOM;
+	    _frame_attr &= ~XP_FRAME_ATTR_ZOOM;
 	if (!(hints[1] & 33))
-	    _frame_attr &= ~XP_FRAME_CLOSE_BOX;
+	    _frame_attr &= ~XP_FRAME_ATTR_CLOSE_BOX;
     }
     if (hints[0] & 2)
     {
 	/* hints[2] = decoration hints */
 
 	if (!(hints[2] & 9))
-	    [self set_class:XP_FRAME_CLASS_BORDERLESS];
+	    [self set_class:QWM_WINDOW_CLASS_BORDERLESS];
     }
     if (hints[3] != 0)
     {
@@ -1403,13 +1425,13 @@ static const char *gravity_type(int gravity) {
 	switch (hints[3])
 	{
 	case 1: case 3:
-	    if (_frame_class == XP_FRAME_CLASS_DOCUMENT)
-		[self set_class:XP_FRAME_CLASS_MODAL_DIALOG];
+	    if (_window_class == QWM_WINDOW_CLASS_DOCUMENT)
+		[self set_class:QWM_WINDOW_CLASS_MODAL_DIALOG];
 	    break;
 
 	case 2:
-	    if (_frame_class == XP_FRAME_CLASS_DOCUMENT)
-		[self set_class:XP_FRAME_CLASS_SYSTEM_MODAL_DIALOG];
+	    if (_window_class == QWM_WINDOW_CLASS_DOCUMENT)
+		[self set_class:QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG];
 	    break;
 	}
     }
@@ -1445,7 +1467,7 @@ static const char *gravity_type(int gravity) {
              * WM_TRANSIENT_FOR set MUST be taken as this type. 
              */
             if(!x_get_property(_id, atoms.net_wm_window_type, &data, 1, 1))
-                [self set_class:XP_FRAME_CLASS_DIALOG];
+                [self set_class:QWM_WINDOW_CLASS_DIALOG];
             
             /* Update the parent's transients */
             _transient_for->_transients = x_list_prepend(_transient_for->_transients, self);
@@ -1693,9 +1715,9 @@ static const char *gravity_type(int gravity) {
     unsigned int orig_attr = _frame_attr;
 
     if (state)
-	_frame_attr |= XP_FRAME_ACTIVE;
+	_frame_attr |= XP_FRAME_ATTR_ACTIVE;
     else
-	_frame_attr &= ~XP_FRAME_ACTIVE;
+	_frame_attr &= ~XP_FRAME_ATTR_ACTIVE;
 
     if (_frame_attr != orig_attr)
 	[self decorate];
@@ -1805,17 +1827,17 @@ static const char *gravity_type(int gravity) {
     or = [self frame_outer_rect];
     ir = [self frame_inner_rect:or];
 
-    attr = frame_hit_test(or, ir, _frame_class, p);
+    attr = frame_hit_test(or, ir, _window_class, p);
 
     /* Only return buttons that we actually have */
      attr &= _frame_attr;
     
     if([self has_modal_descendents])
-        attr &= ~XP_FRAME_CLOSE_BOX;
+        attr &= ~XP_FRAME_ATTR_CLOSE_BOX;
     if (_tracking_id != 0 && X11RectContainsPoint (_tracking_rect, p))
-        attr |= XP_FRAME_PRELIGHT;
+        attr |= XP_FRAME_ATTR_PRELIGHT;
     if (_growbox_id != 0 && X11RectContainsPoint (_growbox_rect, p))
-        attr |= XP_FRAME_GROW_BOX;
+        attr |= XP_FRAME_ATTR_GROW_BOX;
     
     return attr;
 }
@@ -2004,7 +2026,7 @@ static const char *gravity_type(int gravity) {
     TRACE ();
 
     _shaded = YES;
-    _frame_attr |= XP_FRAME_SHADED;
+    _frame_attr |= XP_FRAME_ATTR_SHADED;
 
     r = _current_frame;
     r.height = _frame_height;
@@ -2028,7 +2050,7 @@ static const char *gravity_type(int gravity) {
     TRACE ();
 
     _shaded = NO;
-    _frame_attr &= ~XP_FRAME_SHADED;
+    _frame_attr &= ~XP_FRAME_ATTR_SHADED;
 
     [self map_unmap_client];
 
@@ -2059,7 +2081,7 @@ static const char *gravity_type(int gravity) {
     if (!_has_unzoomed_frame) {
         _unzoomed_frame = _current_frame;
         _has_unzoomed_frame = YES;
-        _unzoomed_frame_class = _frame_class;
+        _unzoomed_window_class = _window_class;
     }
 
     if(X11RectEqualToRect(_current_frame, maximized_rect)) {
@@ -2080,7 +2102,7 @@ static const char *gravity_type(int gravity) {
     if (!_has_unzoomed_frame) {
         _unzoomed_frame = _current_frame;
         _has_unzoomed_frame = YES;
-        _unzoomed_frame_class = _frame_class;
+        _unzoomed_window_class = _window_class;
     }
 
     if(!X11RectEqualToRect(_current_frame, maximized_rect)) {
@@ -2101,7 +2123,7 @@ static const char *gravity_type(int gravity) {
     if (!_has_unzoomed_frame) {
         _has_unzoomed_frame = YES;
         _unzoomed_frame = _current_frame;
-        _unzoomed_frame_class = _frame_class;
+        _unzoomed_window_class = _window_class;
     }
 
     /* We are changing our frame class, so we need to reparent_out */
@@ -2111,9 +2133,9 @@ static const char *gravity_type(int gravity) {
     _fullscreen = flag;
 
     if(_fullscreen) {
-        [self set_class:XP_FRAME_CLASS_BORDERLESS];
+        [self set_class:QWM_WINDOW_CLASS_BORDERLESS];
     } else {
-        [self set_class:_unzoomed_frame_class];
+        [self set_class:_unzoomed_window_class];
     }
 
     if(decorated)
