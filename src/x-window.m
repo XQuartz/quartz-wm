@@ -45,7 +45,6 @@
 - (void) update_wm_hints;
 - (void) update_size_hints;
 - (void) update_net_wm_type_hints;
-- (void) update_net_wm_action_property;
 - (void) update_net_wm_state_hints;
 - (void) update_net_wm_state_property;
 - (void) update_motif_hints;
@@ -426,7 +425,7 @@ static const char *gravity_type(int gravity) {
         case QWM_WINDOW_CLASS_TOOLBAR:
             _level = AppleWMWindowLevelTornOff;
             _in_window_menu = NO;
-            _click_through = YES;
+            _always_click_through = YES;
             _shadable = NO;
             _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
             break;
@@ -435,19 +434,19 @@ static const char *gravity_type(int gravity) {
             _level = AppleWMWindowLevelFloating;
             _in_window_menu = NO;
             _movable = NO;
-            _click_through = YES;
+            _always_click_through = YES;
             _shadable = NO;
             break;
             
         case QWM_WINDOW_CLASS_UTILITY:
             _level = AppleWMWindowLevelFloating;
             _in_window_menu = NO;
-            _click_through = YES;
+            _always_click_through = YES;
             _shadable = NO;
             break;
             
         case QWM_WINDOW_CLASS_BORDERLESS:
-            _click_through = YES;
+            _always_click_through = YES;
             _in_window_menu = NO;
             _shadable = NO;
             _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
@@ -456,7 +455,7 @@ static const char *gravity_type(int gravity) {
         case QWM_WINDOW_CLASS_DESKTOP:
             _level = AppleWMWindowLevelDesktop;
             _in_window_menu = NO;
-            _click_through = YES;
+            _always_click_through = YES;
             _shadable = NO;
             _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
             break;       
@@ -548,8 +547,8 @@ static const char *gravity_type(int gravity) {
     /* Start with everything. */
     _frame_attr  = (XP_FRAME_ATTR_CLOSE_BOX | XP_FRAME_ATTR_COLLAPSE
                     | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
-    _click_through = focus_click_through;
-    _shadable = window_shading;
+    _always_click_through = NO;
+    _shadable = YES;
     _movable = YES;
     _in_window_menu = YES;
     _level = AppleWMWindowLevelNormal;
@@ -1222,7 +1221,6 @@ static const char *gravity_type(int gravity) {
 
             class = QWM_WINDOW_CLASS_DESKTOP;
             _level = AppleWMWindowLevelDesktop;
-            _click_through = YES;
             _shadable = NO;
             break;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dialog) {
@@ -1404,10 +1402,12 @@ static const char *gravity_type(int gravity) {
             maximized = YES;
     }
 
-    if (_shaded && !shaded)
-        [self do_unshade:CurrentTime];
-    else if (!_shaded && shaded && _shadable)
-        [self do_shade:CurrentTime];
+    if (window_shading) {
+        if (_shaded && !shaded)
+            [self do_unshade:CurrentTime];
+        else if (!_shaded && shaded && _shadable)
+            [self do_shade:CurrentTime];
+    }
 
     if(maximized && (_frame_attr & XP_FRAME_ATTR_ZOOM))
         [self do_maximize];
@@ -1497,7 +1497,7 @@ static const char *gravity_type(int gravity) {
         _atoms[n_atoms++] = atoms.net_wm_action_resize;
     if (_frame_attr & XP_FRAME_ATTR_COLLAPSE)
         _atoms[n_atoms++] = atoms.net_wm_action_minimize;
-    if (_shadable)
+    if (_shadable && window_shading)
         _atoms[n_atoms++] = atoms.net_wm_action_shade;
     if (_frame_attr & XP_FRAME_ATTR_ZOOM)
     {

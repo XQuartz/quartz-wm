@@ -123,7 +123,7 @@ typedef enum {
     unsigned _pending_decorate :1;
     unsigned _resizing_title :1;
     unsigned _needs_configure_notify :1;
-    unsigned _click_through :1;
+    unsigned _always_click_through :1;
     unsigned _movable :1;
     unsigned _shadable :1;
     unsigned _in_window_menu :1;
@@ -158,6 +158,7 @@ typedef enum {
 - (void) expose;
 - (void) decorate;
 - (void) property_changed:(Atom)atom;
+- (void) update_net_wm_action_property;
 - (x_list *) window_group;
 - (OSXWindowID) get_osx_id;
 - (void) set_wm_state:(int)state;

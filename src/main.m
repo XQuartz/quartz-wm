@@ -892,16 +892,10 @@ static void prefs_reload_cb(CFRunLoopObserverRef observer,
             s = s_node->data;
             for(w_node = s->_window_list; w_node != NULL; w_node = w_node->next) {
                 w = w_node->data;
-                switch(w->_window_class) {
-                    case QWM_WINDOW_CLASS_BORDERLESS:
-                    case QWM_WINDOW_CLASS_UTILITY:
-                    case QWM_WINDOW_CLASS_SPLASH:
-                    case QWM_WINDOW_CLASS_TOOLBAR:
-                    case QWM_WINDOW_CLASS_MENU:
-                        break;
-                    default:
-                        w->_click_through = focus_click_through;
-                        w->_shadable = window_shading;
+                if(w->_shadable) {
+                    if(!window_shading && w->_shaded)
+                        [w do_unshade:CurrentTime];
+                    [w update_net_wm_action_property];
                 }
             }
         }

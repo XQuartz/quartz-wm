@@ -144,144 +144,144 @@ static void
 x_event_button (XButtonEvent *e)
 {
     x_window *w = x_get_window (e->window);
-
+    
     if (w == nil)
-	return;
-
+        return;
+    
     if (e->window == w->_id)
     {
-	/* Swallow the first activating click. Since the X server activates
-	   us we need to look at timestamps to handle the case where the
-	   user activated X by clicking on the already focused window. Use
-	   a 100ms window for this. */
-
-	if ((!w->_focused || (e->time - last_activation_time) < 100)
-	    && [w focus:e->time])
-	{
-	    if (!w->_click_through)
-	    {
-		XAllowEvents (x_dpy, AsyncPointer, e->time);
-	    }
-	    else
-	    {
-		XAllowEvents (x_dpy, ReplayPointer, e->time);
-		XUngrabPointer (x_dpy, e->time);
-	    }
-	}
-	else
-	{
-	    [w raise];
-	    XAllowEvents (x_dpy, ReplayPointer, e->time);
-	    XUngrabPointer (x_dpy, e->time);
-	}
+        /* Swallow the first activating click. Since the X server activates
+         us we need to look at timestamps to handle the case where the
+         user activated X by clicking on the already focused window. Use
+         a 100ms window for this. */
+        
+        if ((!w->_focused || (e->time - last_activation_time) < 100)
+            && [w focus:e->time])
+        {
+            if (w->_always_click_through || focus_click_through)
+            {
+                XAllowEvents (x_dpy, ReplayPointer, e->time);
+                XUngrabPointer (x_dpy, e->time);
+            }
+            else
+            {
+                XAllowEvents (x_dpy, AsyncPointer, e->time);
+            }
+        }
+        else
+        {
+            [w raise];
+            XAllowEvents (x_dpy, ReplayPointer, e->time);
+            XUngrabPointer (x_dpy, e->time);
+        }
     }
     else if (e->button <= 3
-	     && (e->window == w->_frame_id || e->window == w->_growbox_id))
+             && (e->window == w->_frame_id || e->window == w->_growbox_id))
     {
-	unsigned int old_attrs = w->_frame_attr;
-	X11Point p = X11PointMake (e->x, e->y);
-
-	if (e->window == w->_growbox_id)
-	{
-	    p.x += w->_growbox_rect.x;
-	    p.y += w->_growbox_rect.y;
-	}
-
-	if (e->type == ButtonPress)
-	{
-	    /* FIXME: double click on title bar should collapse window */
-
-	    if (buttons_pressed (e->state) == 0)
-	    {
-		/* First button press */
-
-	        /* FIXME: wrap around? */
-		if (e->time - pointer.down_time < DOUBLE_CLICK_TIME)
-		    pointer.click_count++;
-		else
-		    pointer.click_count = 1;
-
-		pointer.down_location.x = e->x_root;
-		pointer.down_location.y = e->y_root;
-		pointer.down_id = e->window;
-		pointer.down_time = e->time;
-		pointer.down_attrs = [w hit_test_frame:p];
-
-		if ((pointer.down_attrs
-		     & (w->_frame_attr & XP_FRAME_ATTRS_ANY_BUTTON)) != 0)
-		{
-		    pointer.clicking = YES;
-		    XP_FRAME_ATTR_SET_CLICKED (w->_frame_attr,
-					    pointer.down_attrs
-					    & XP_FRAME_ATTRS_ANY_BUTTON);
-		}
-		else
-		{
-		    [w focus:e->time raise:!(e->state & x_meta_mod)];
-		}
-	    }
-	}
-	else if (e->type == ButtonRelease)
-	{
-	    if (buttons_pressed (e->state) == 1)
-	    {
-		/* Releasing last button */
-
-		if (pointer.dragging)
-		{
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
-            DockDragEnd([w get_osx_id]);
-#endif
-		    pointer.dragging = NO;
-		}
-		else if (pointer.resizing)
-		{
-		    pointer.resizing = NO;
-		    [w remove_resizing_title];
-		}
-		else if (pointer.clicking)
-		{
-		    unsigned int attrs;
-
-            /* Test the release location */
-		    attrs = [w hit_test_frame:p];
+        unsigned int old_attrs = w->_frame_attr;
+        X11Point p = X11PointMake (e->x, e->y);
+        
+        if (e->window == w->_growbox_id)
+        {
+            p.x += w->_growbox_rect.x;
+            p.y += w->_growbox_rect.y;
+        }
+        
+        if (e->type == ButtonPress)
+        {
+            /* FIXME: double click on title bar should collapse window */
             
-            /* Only if it went pressed the same button it came released on */
-            attrs &= pointer.down_attrs;
-
-		    if (attrs & XP_FRAME_ATTR_CLOSE_BOX)
-			[w do_close:e->time];
-		    else if (attrs & XP_FRAME_ATTR_COLLAPSE)
-			[w do_collapse];
-		    else if (attrs & XP_FRAME_ATTR_ZOOM)
-			[w do_zoom];
-		    
-		    XP_FRAME_ATTR_UNSET_CLICKED (w->_frame_attr,
-					      XP_FRAME_ATTRS_ANY_BUTTON);
-
-		    /* Update prelight bit, we ignored tracking events
-		       while clickiing. */
-		    w->_frame_attr &= ~XP_FRAME_ATTR_PRELIGHT;
-		    w->_frame_attr |= attrs & XP_FRAME_ATTR_PRELIGHT;
-
-		    pointer.clicking = NO;
-		}
-		else if (pointer.click_count == 2)
-		{
-		    if (w->_shadable)
-			[w do_toggle_shaded:e->time];
-		    else
-			[w do_collapse];
-		}
-
-		pointer.down_id = 0;
-	    }
-	}
-
-	if (w->_frame_attr != old_attrs)
-	{
-	    [w decorate];
-	}
+            if (buttons_pressed (e->state) == 0)
+            {
+                /* First button press */
+                
+                /* FIXME: wrap around? */
+                if (e->time - pointer.down_time < DOUBLE_CLICK_TIME)
+                    pointer.click_count++;
+                else
+                    pointer.click_count = 1;
+                
+                pointer.down_location.x = e->x_root;
+                pointer.down_location.y = e->y_root;
+                pointer.down_id = e->window;
+                pointer.down_time = e->time;
+                pointer.down_attrs = [w hit_test_frame:p];
+                
+                if ((pointer.down_attrs
+                     & (w->_frame_attr & XP_FRAME_ATTRS_ANY_BUTTON)) != 0)
+                {
+                    pointer.clicking = YES;
+                    XP_FRAME_ATTR_SET_CLICKED (w->_frame_attr,
+                                               pointer.down_attrs
+                                               & XP_FRAME_ATTRS_ANY_BUTTON);
+                }
+                else
+                {
+                    [w focus:e->time raise:!(e->state & x_meta_mod)];
+                }
+            }
+        }
+        else if (e->type == ButtonRelease)
+        {
+            if (buttons_pressed (e->state) == 1)
+            {
+                /* Releasing last button */
+                
+                if (pointer.dragging)
+                {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
+                    DockDragEnd([w get_osx_id]);
+#endif
+                    pointer.dragging = NO;
+                }
+                else if (pointer.resizing)
+                {
+                    pointer.resizing = NO;
+                    [w remove_resizing_title];
+                }
+                else if (pointer.clicking)
+                {
+                    unsigned int attrs;
+                    
+                    /* Test the release location */
+                    attrs = [w hit_test_frame:p];
+                    
+                    /* Only if it went pressed the same button it came released on */
+                    attrs &= pointer.down_attrs;
+                    
+                    if (attrs & XP_FRAME_ATTR_CLOSE_BOX)
+                        [w do_close:e->time];
+                    else if (attrs & XP_FRAME_ATTR_COLLAPSE)
+                        [w do_collapse];
+                    else if (attrs & XP_FRAME_ATTR_ZOOM)
+                        [w do_zoom];
+                    
+                    XP_FRAME_ATTR_UNSET_CLICKED (w->_frame_attr,
+                                                 XP_FRAME_ATTRS_ANY_BUTTON);
+                    
+                    /* Update prelight bit, we ignored tracking events
+                     while clickiing. */
+                    w->_frame_attr &= ~XP_FRAME_ATTR_PRELIGHT;
+                    w->_frame_attr |= attrs & XP_FRAME_ATTR_PRELIGHT;
+                    
+                    pointer.clicking = NO;
+                }
+                else if (pointer.click_count == 2)
+                {
+                    if (w->_shadable && window_shading)
+                        [w do_toggle_shaded:e->time];
+                    else
+                        [w do_collapse];
+                }
+                
+                pointer.down_id = 0;
+            }
+        }
+        
+        if (w->_frame_attr != old_attrs)
+        {
+            [w decorate];
+        }
     }
 }
 
