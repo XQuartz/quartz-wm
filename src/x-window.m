@@ -53,6 +53,7 @@
 - (void) update_group;
 - (void) update_shape:(X11Rect)or;
 - (void) decorate_rect:(X11Rect)or;
+- (xp_frame_class) get_xp_frame_class;
 - (void) map_unmap_client;
 - (void) do_maximize;
 - (void) do_fullscreen:(BOOL)flag;
@@ -94,28 +95,6 @@ static const char *gravity_type(int gravity) {
     }
 }
 #endif
-
-static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class) {
-    switch(class) {
-        case QWM_WINDOW_CLASS_DOCUMENT:
-        case QWM_WINDOW_CLASS_DIALOG:
-        case QWM_WINDOW_CLASS_MODAL_DIALOG:
-        case QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG:
-            return XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
-        case QWM_WINDOW_CLASS_UTILITY:
-        case QWM_WINDOW_CLASS_TOOLBAR:
-        case QWM_WINDOW_CLASS_MENU:
-            return XP_FRAME_CLASS_DECOR_SMALL | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
-        case QWM_WINDOW_CLASS_SPLASH:
-            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
-        case QWM_WINDOW_CLASS_BORDERLESS:
-            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
-        case QWM_WINDOW_CLASS_DESKTOP:
-            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
-        default:
-            return XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
-    }
-}
 
 @implementation x_window
 
@@ -401,34 +380,60 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     [self resize_frame:r];
 }
 
-- (void) set_class:(int)class
+-(xp_frame_class) get_xp_frame_class {
+    switch(_window_class) {
+        case QWM_WINDOW_CLASS_DOCUMENT:
+        case QWM_WINDOW_CLASS_DIALOG:
+        case QWM_WINDOW_CLASS_MODAL_DIALOG:
+        case QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG:
+            return XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+        case QWM_WINDOW_CLASS_UTILITY:
+        case QWM_WINDOW_CLASS_TOOLBAR:
+        case QWM_WINDOW_CLASS_MENU:
+            return XP_FRAME_CLASS_DECOR_SMALL | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+        case QWM_WINDOW_CLASS_SPLASH:
+            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
+        case QWM_WINDOW_CLASS_BORDERLESS:
+            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
+        case QWM_WINDOW_CLASS_DESKTOP:
+            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
+        default:
+            return XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+    }
+}
+
+- (void) set_class:(qwm_window_class)class
 {
     if (_decorated)
         return;				/* too late */
     
-    if (class != QWM_WINDOW_CLASS_DOCUMENT)
-        _in_window_menu = NO;
-    
     switch (class) {
+        case QWM_WINDOW_CLASS_DOCUMENT:
+            break;
+
         case QWM_WINDOW_CLASS_DIALOG:
+            _in_window_menu = NO;
             _frame_attr &= ~XP_FRAME_ATTR_ZOOM;
             break;
             
         case QWM_WINDOW_CLASS_MODAL_DIALOG:
         case QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG:
+            _in_window_menu = NO;
             _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
             break;
             
         case QWM_WINDOW_CLASS_MENU:
         case QWM_WINDOW_CLASS_TOOLBAR:
-            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
             _level = AppleWMWindowLevelTornOff;
+            _in_window_menu = NO;
             _click_through = YES;
             _shadable = NO;
+            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
             break;
             
         case QWM_WINDOW_CLASS_SPLASH:
             _level = AppleWMWindowLevelFloating;
+            _in_window_menu = NO;
             _movable = NO;
             _click_through = YES;
             _shadable = NO;
@@ -436,19 +441,29 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
             
         case QWM_WINDOW_CLASS_UTILITY:
             _level = AppleWMWindowLevelFloating;
+            _in_window_menu = NO;
             _click_through = YES;
             _shadable = NO;
             break;
             
         case QWM_WINDOW_CLASS_BORDERLESS:
             _click_through = YES;
+            _in_window_menu = NO;
             _shadable = NO;
             _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
             break;
+            
+        case QWM_WINDOW_CLASS_DESKTOP:
+            _level = AppleWMWindowLevelDesktop;
+            _in_window_menu = NO;
+            _click_through = YES;
+            _shadable = NO;
+            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
+            break;       
     }
     
     _window_class = class;
-    _frame_title_height = frame_titlebar_height(qwm_window_class_to_xp_frame_class(_window_class));
+    _frame_title_height = frame_titlebar_height([self get_xp_frame_class]);
 }
 
 /* Given the x/y/w/h from a ConfigureRequest, what is our frame's
@@ -861,7 +876,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 	XSetWindowAttributes attr;
 
 	/* Initialize pointer tracking window for prelighting */
-	_tracking_rect = frame_tracking_rect(or, ir, qwm_window_class_to_xp_frame_class(_window_class));
+	_tracking_rect = frame_tracking_rect(or, ir, [self get_xp_frame_class]);
 	attr.override_redirect = True;
 	_tracking_id = XCreateWindow (x_dpy, _frame_id,
 				      _tracking_rect.x,
@@ -890,7 +905,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 	attr_mask |= (CWOverrideRedirect | CWColormap
 		      | CWBorderPixel | CWWinGravity);
 
-	_growbox_rect = frame_growbox_rect (or, ir, qwm_window_class_to_xp_frame_class(_window_class));
+	_growbox_rect = frame_growbox_rect (or, ir, [self get_xp_frame_class]);
 	_growbox_id = XCreateWindow (x_dpy, _frame_id,
 				     _growbox_rect.x,
 				     _growbox_rect.y,
@@ -910,7 +925,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     else if (_growbox_id != 0 && reposition)
     {
 #ifdef MORE_ROUNDTRIPS
-	_growbox_rect = frame_growbox_rect (or, ir, qwm_window_class_to_xp_frame_class(_window_class));
+	_growbox_rect = frame_growbox_rect (or, ir, [self get_xp_frame_class]);
 #else
 	_growbox_rect.x = or.width - _growbox_rect.width;
 	_growbox_rect.y = or.height - _growbox_rect.height;
@@ -1053,7 +1068,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
         frame_attr &= ~XP_FRAME_ATTR_CLOSE_BOX;
     }
 
-    draw_frame (_screen->_id, _frame_id, or, ir, qwm_window_class_to_xp_frame_class(_window_class),
+    draw_frame (_screen->_id, _frame_id, or, ir, [self get_xp_frame_class],
 		frame_attr, (CFStringRef) [self title]);
 
     _decorated = YES;
@@ -1827,7 +1842,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     or = [self frame_outer_rect];
     ir = [self frame_inner_rect:or];
 
-    attr = frame_hit_test(or, ir, _window_class, p);
+    attr = frame_hit_test(or, ir, [self get_xp_frame_class], p);
 
     /* Only return buttons that we actually have */
      attr &= _frame_attr;
