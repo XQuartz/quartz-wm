@@ -380,89 +380,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 }
 
 -(xp_frame_class) get_xp_frame_class {
-    switch(_window_class) {
-        case QWM_WINDOW_CLASS_DOCUMENT:
-        case QWM_WINDOW_CLASS_DIALOG:
-        case QWM_WINDOW_CLASS_MODAL_DIALOG:
-        case QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG:
-            return XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
-        case QWM_WINDOW_CLASS_UTILITY:
-        case QWM_WINDOW_CLASS_TOOLBAR:
-        case QWM_WINDOW_CLASS_MENU:
-            return XP_FRAME_CLASS_DECOR_SMALL | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
-        case QWM_WINDOW_CLASS_SPLASH:
-            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
-        case QWM_WINDOW_CLASS_BORDERLESS:
-            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
-        case QWM_WINDOW_CLASS_DESKTOP:
-            return XP_FRAME_CLASS_DECOR_NONE | XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
-        default:
-            return XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_BEHAVIOR_MANAGED;
-    }
-}
-
-- (void) set_class:(qwm_window_class)class
-{
-    if (_decorated)
-        return;				/* too late */
-
-    switch (class) {
-        case QWM_WINDOW_CLASS_DOCUMENT:
-            break;
-
-        case QWM_WINDOW_CLASS_DIALOG:
-            _in_window_menu = NO;
-            _frame_attr &= ~XP_FRAME_ATTR_ZOOM;
-            break;
-
-        case QWM_WINDOW_CLASS_MODAL_DIALOG:
-        case QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG:
-            _in_window_menu = NO;
-            _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
-            break;
-
-        case QWM_WINDOW_CLASS_MENU:
-        case QWM_WINDOW_CLASS_TOOLBAR:
-            _level = AppleWMWindowLevelTornOff;
-            _in_window_menu = NO;
-            _always_click_through = YES;
-            _shadable = NO;
-            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
-            break;
-
-        case QWM_WINDOW_CLASS_SPLASH:
-            _level = AppleWMWindowLevelFloating;
-            _in_window_menu = NO;
-            _movable = NO;
-            _always_click_through = YES;
-            _shadable = NO;
-            break;
-
-        case QWM_WINDOW_CLASS_UTILITY:
-            _level = AppleWMWindowLevelFloating;
-            _in_window_menu = NO;
-            _always_click_through = YES;
-            _shadable = NO;
-            break;
-
-        case QWM_WINDOW_CLASS_BORDERLESS:
-            _always_click_through = YES;
-            _in_window_menu = NO;
-            _shadable = NO;
-            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
-            break;
-
-        case QWM_WINDOW_CLASS_DESKTOP:
-            _level = AppleWMWindowLevelDesktop;
-            _in_window_menu = NO;
-            _always_click_through = YES;
-            _shadable = NO;
-            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
-            break;
-    }
-
-    _window_class = class;
-    _frame_title_height = frame_titlebar_height([self get_xp_frame_class]);
+    if(_fullscreen)
+        return _frame_behavior | XP_FRAME_CLASS_DECOR_NONE;
+    return _frame_behavior | _frame_decor;
 }
 
 /* Given the x/y/w/h from a ConfigureRequest, what is our frame's
@@ -544,17 +464,16 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     /* Get the initial attr of the child window */
     XGetWindowAttributes(x_dpy, _id, &_xattr);
 
-    /* Start with everything. */
-    _frame_attr  = (XP_FRAME_ATTR_CLOSE_BOX | XP_FRAME_ATTR_COLLAPSE
-                    | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
+    /* Start with the default set. */
     _always_click_through = NO;
-    _shadable = YES;
-    _movable = YES;
+    _frame_attr  = (XP_FRAME_ATTR_CLOSE_BOX | XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
+    _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+    _frame_decor = XP_FRAME_CLASS_DECOR_LARGE;
     _in_window_menu = YES;
     _level = AppleWMWindowLevelNormal;
-
-    /* Default to document windows. */
-    [self set_class:QWM_WINDOW_CLASS_DOCUMENT];
+    _modal = NO;
+    _movable = YES;
+    _shadable = YES;
 
     /* The ordering here is chosen so that most authoritative should go last. */
     [self update_wm_name];
@@ -573,6 +492,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _size_hints.min_height >= _size_hints.max_height) {
         _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
     }
+    
+    _frame_title_height = frame_titlebar_height([self get_xp_frame_class]);
 
     XSetWindowBorderWidth (x_dpy, _id, 0);
 
@@ -1036,8 +957,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         x_list *node;
         for(node = _transients; node; node = node->next) {
             x_window *child = node->data;
-            if(child->_window_class == QWM_WINDOW_CLASS_MODAL_DIALOG ||
-               child->_window_class == QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG) {
+            if(child->_modal) {
                 return YES;
             }
         }
@@ -1193,45 +1113,30 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) update_net_wm_type_hints
 {
-    long _atoms[16];
-    int i, n, class = -1;
+    long _atoms[33];
+    int i, n;
 
-    n = x_get_property (_id, atoms.net_wm_window_type, _atoms, 16, 0);
+    n = x_get_property (_id, atoms.net_wm_window_type, _atoms, 32, 0);
 
-    for (i = 0; class == -1 && i < n; i++) {
-        if((Atom)_atoms[i] == atoms.net_wm_window_type_combo) {
+    /* Append the default type in case we see no understood types */
+    if(_transient_for)
+        _atoms[n++] = atoms.net_wm_window_type_dialog;
+    else
+        _atoms[n++] = atoms.net_wm_window_type_normal;
+    
+    for (i = 0; i < n; i++) {
+        if((Atom)_atoms[i] == atoms.net_wm_window_type_combo ||
+           (Atom)_atoms[i] == atoms.net_wm_window_type_dnd ||
+           (Atom)_atoms[i] == atoms.net_wm_window_type_dropdown_menu ||
+           (Atom)_atoms[i] == atoms.net_wm_window_type_notification ||
+           (Atom)_atoms[i] == atoms.net_wm_window_type_popup_menu ||
+           (Atom)_atoms[i] == atoms.net_wm_window_type_tooltip) {
             /* _NET_WM_WINDOW_TYPE_COMBO should be used on the windows that are
              * popped up by combo boxes. An example is a window that appears
              * below a text field with a list of suggested completions. This
              * property is typically used on override-redirect windows.
              */
 
-            /* We should not be here because this type should be used for
-             * override-redirect windows.  Just draw borderless.
-             */
-            // TODO
-            break;
-        } else if((Atom)_atoms[i] == atoms.net_wm_window_type_desktop) {
-            /* _NET_WM_WINDOW_TYPE_DESKTOP indicates a desktop feature. This
-             * can include a single window containing desktop icons with the
-             * same dimensions as the screen, allowing the desktop environment
-             * to have full control of the desktop, without the need for
-             * proxying root window clicks.
-             */
-
-            class = QWM_WINDOW_CLASS_DESKTOP;
-            _level = AppleWMWindowLevelDesktop;
-            _shadable = NO;
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dialog) {
-            /* _NET_WM_WINDOW_TYPE_DIALOG indicates that this is a dialog
-             * window. If _NET_WM_WINDOW_TYPE is not set, then windows with
-             * WM_TRANSIENT_FOR set MUST be taken as this type.
-             */
-
-            class = QWM_WINDOW_CLASS_DIALOG;
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dnd) {
             /* _NET_WM_WINDOW_TYPE_DND indicates that the window is being
              * dragged. Clients should set this hint when the window in
              * question contains a representation of an object being dragged
@@ -1241,25 +1146,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              * override-redirect windows.
              */
 
-            /* We should not be here because this type should be used for
-             * override-redirect windows.  Just draw borderless.
-             */
-            // TODO
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dock) {
-            /* _NET_WM_WINDOW_TYPE_DOCK indicates a dock or panel feature.
-             * Typically a Window Manager would keep such windows on top of
-             * all other windows.
-             */
-
-            /* KDE used to have issues, so we used to leave dock windows at the
-             * normal level, but that should not be the case any more.
-             * <rdar://problem/3205836> tooltips from KDE kicker show behind the kicker
-             */
-            class = QWM_WINDOW_CLASS_BORDERLESS;
-            _level = AppleWMWindowLevelDock;
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dropdown_menu) {
             /* _NET_WM_WINDOW_TYPE_DROPDOWN_MENU indicates that the window in
              * question is a dropdown menu, ie., the kind of menu that
              * typically appears when the user clicks on a menubar, as opposed
@@ -1268,38 +1154,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              * override-redirect windows.
              */
 
-            /* We should not be here because this type should be used for
-             * override-redirect windows.  Just draw borderless.
-             */
-            // TODO
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_menu) {
-            /* _NET_WM_WINDOW_TYPE_TOOLBAR and _NET_WM_WINDOW_TYPE_MENU
-             * indicate toolbar and pinnable menu windows, respectively
-             * (i.e. toolbars and menus "torn off" from the main application).
-             * Windows of this type may set the WM_TRANSIENT_FOR hint
-             * indicating the main application window. Note that the
-             * _NET_WM_WINDOW_TYPE_MENU should be set on torn-off managed
-             * windows, where _NET_WM_WINDOW_TYPE_DROPDOWN_MENU and
-             * _NET_WM_WINDOW_TYPE_POPUP_MENU are typically used on
-             * override-redirect windows.
-             */
-            class = QWM_WINDOW_CLASS_MENU;
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_normal) {
-            /* _NET_WM_WINDOW_TYPE_NORMAL indicates that this is a normal,
-             * top-level window. Windows with neither _NET_WM_WINDOW_TYPE nor
-             * WM_TRANSIENT_FOR set MUST be taken as this type.
-             */
-
-            /* We set class = QWM_WINDOW_CLASS_DOCUMENT by default, so this is unneccessary.
-             * Furthermore, it causes the motif borderless hint to be ignored if the window
-             * is also set _NET_WM_WINDOW_TYPE_NORMAL... which is common.  See
-             * http://xquartz.macosforge.org/trac/ticket/194
-             */
-            // class = QWM_WINDOW_CLASS_DOCUMENT;
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_notification) {
             /* _NET_WM_WINDOW_TYPE_NOTIFICATION indicates a notification. An
              * example of a notification would be a bubble appearing with
              * informative text such as "Your laptop is running out of power"
@@ -1307,12 +1161,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              * windows.
              */
 
-            /* We should not be here because this type should be used for
-             * override-redirect windows.  Just draw borderless.
-             */
-            // TODO
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_popup_menu) {
             /* _NET_WM_WINDOW_TYPE_POPUP_MENU indicates that the window in
              * question is a popup menu, ie., the kind of menu that typically
              * appears when the user right clicks on an object, as opposed to a
@@ -1320,34 +1168,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              * menubar. This property is typically used on override-redirect
              * windows.
              */
-
-            /* We should not be here because this type should be used for
-             * override-redirect windows.  Just draw borderless.
-             */
-            // TODO
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_splash) {
-            /* _NET_WM_WINDOW_TYPE_SPLASH indicates that the window is a splash
-             * screen displayed as an application is starting up.
-             */
-
-            class = QWM_WINDOW_CLASS_SPLASH;
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_toolbar) {
-            /* _NET_WM_WINDOW_TYPE_TOOLBAR and _NET_WM_WINDOW_TYPE_MENU
-             * indicate toolbar and pinnable menu windows, respectively
-             * (i.e. toolbars and menus "torn off" from the main application).
-             * Windows of this type may set the WM_TRANSIENT_FOR hint
-             * indicating the main application window. Note that the
-             * _NET_WM_WINDOW_TYPE_MENU should be set on torn-off managed
-             * windows, where _NET_WM_WINDOW_TYPE_DROPDOWN_MENU and
-             * _NET_WM_WINDOW_TYPE_POPUP_MENU are typically used on
-             * override-redirect windows.
-             */
-
-            class = QWM_WINDOW_CLASS_TOOLBAR;
-            break;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_tooltip) {
+            
             /* _NET_WM_WINDOW_TYPE_TOOLTIP indicates that the window in
              * question is a tooltip, ie., a short piece of explanatory text
              * that typically appear after the mouse cursor hovers over an
@@ -1356,10 +1177,114 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              */
 
             /* We should not be here because this type should be used for
-             * override-redirect windows.  Just draw borderless.
+             * override-redirect windows.  Just draw withour decoration.
              */
-            // TODO
+
+            _always_click_through = YES;
+            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM);
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
+            _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
+            _in_window_menu = NO;
+            _level = AppleWMWindowLevelTornOff;
+            _movable = NO;
+            _shadable = NO;
+
             break;
+        } else if((Atom)_atoms[i] == atoms.net_wm_window_type_desktop) {
+            /* _NET_WM_WINDOW_TYPE_DESKTOP indicates a desktop feature. This
+             * can include a single window containing desktop icons with the
+             * same dimensions as the screen, allowing the desktop environment
+             * to have full control of the desktop, without the need for
+             * proxying root window clicks.
+             */
+
+            _always_click_through = YES;
+            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM);
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
+            _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
+            _in_window_menu = NO;
+            _level = AppleWMWindowLevelDesktop;
+            _movable = NO;
+            _shadable = NO;
+
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dialog) {
+            /* _NET_WM_WINDOW_TYPE_DIALOG indicates that this is a dialog
+             * window. If _NET_WM_WINDOW_TYPE is not set, then windows with
+             * WM_TRANSIENT_FOR set MUST be taken as this type.
+             */
+
+            _in_window_menu = NO;
+            _frame_attr &= ~XP_FRAME_ATTR_ZOOM;
+
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dock) {
+            /* _NET_WM_WINDOW_TYPE_DOCK indicates a dock or panel feature.
+             * Typically a Window Manager would keep such windows on top of
+             * all other windows.
+             */
+
+            /* Old versions of KDE had issues, so we used to leave dock windows
+             * at the normal level, but that should not be the case any more.
+             * <rdar://problem/3205836> tooltips from KDE kicker show behind the kicker
+             */
+            _always_click_through = YES;
+            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM);
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
+            _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
+            _in_window_menu = NO;
+            _level = AppleWMWindowLevelDock;
+            _movable = NO;
+            _shadable = NO;
+
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_normal) {
+            /* _NET_WM_WINDOW_TYPE_NORMAL indicates that this is a normal,
+             * top-level window. Windows with neither _NET_WM_WINDOW_TYPE nor
+             * WM_TRANSIENT_FOR set MUST be taken as this type.
+             */
+
+            /* We do this by default, so nothing to do here. */
+
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_splash) {
+            /* _NET_WM_WINDOW_TYPE_SPLASH indicates that the window is a splash
+             * screen displayed as an application is starting up.
+             */
+            
+            _always_click_through = YES;
+            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
+            _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
+            _in_window_menu = NO;
+            _level = AppleWMWindowLevelFloating;
+            _movable = NO;
+            _shadable = NO;
+
+            break;
+            
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_menu ||
+                   (Atom)_atoms[i] == atoms.net_wm_window_type_toolbar) {
+            /* _NET_WM_WINDOW_TYPE_TOOLBAR and _NET_WM_WINDOW_TYPE_MENU
+             * indicate toolbar and pinnable menu windows, respectively
+             * (i.e. toolbars and menus "torn off" from the main application).
+             * Windows of this type may set the WM_TRANSIENT_FOR hint
+             * indicating the main application window. Note that the
+             * _NET_WM_WINDOW_TYPE_MENU should be set on torn-off managed
+             * windows, where _NET_WM_WINDOW_TYPE_DROPDOWN_MENU and
+             * _NET_WM_WINDOW_TYPE_POPUP_MENU are typically used on
+             * override-redirect windows.
+             */
+
+            _always_click_through = YES;
+            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM);
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
+            _frame_decor = XP_FRAME_CLASS_DECOR_SMALL;
+            _in_window_menu = NO;
+            _level = AppleWMWindowLevelTornOff;
+            _shadable = NO;
+
+            break;            
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_utility) {
             /* _NET_WM_WINDOW_TYPE_UTILITY indicates a small persistent utility
              * window, such as a palette or toolbox. It is distinct from type
@@ -1369,13 +1294,18 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              * while they're working. Windows of this type may set the
              * WM_TRANSIENT_FOR hint indicating the main application window.
              */
-            class = QWM_WINDOW_CLASS_UTILITY;
+
+            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
+            _frame_decor = XP_FRAME_CLASS_DECOR_SMALL;
+            _level = AppleWMWindowLevelFloating;
+            _in_window_menu = NO;
+            _always_click_through = YES;
+            _shadable = NO;
+
             break;
         }
     }
-
-    if (class != -1)
-        [self set_class:class];
 }
 
 - (void) update_net_wm_state_hints {
@@ -1389,10 +1319,11 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     for (i = 0; i < n; i++)  {
         if ((Atom)_atoms[i] == atoms.net_wm_state_modal)
-            [self set_class:QWM_WINDOW_CLASS_MODAL_DIALOG];
+            _modal = YES;
         else if ((Atom)_atoms[i] == atoms.net_wm_state_shaded)
             shaded = YES;
-        else if ((Atom)_atoms[i] == atoms.net_wm_state_skip_taskbar)
+        else if ((Atom)_atoms[i] == atoms.net_wm_state_skip_pager ||
+                 (Atom)_atoms[i] == atoms.net_wm_state_skip_taskbar)
             _in_window_menu = NO;
         else if ((Atom)_atoms[i] == atoms.net_wm_state_fullscreen)
             fullscreen = YES;
@@ -1400,14 +1331,14 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             maximized = YES;
         else if ((Atom)_atoms[i] == atoms.net_wm_state_maximized_vert)
             maximized = YES;
+        else if ((Atom)_atoms[i] == atoms.net_wm_state_sticky)
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
     }
 
-    if (window_shading) {
-        if (_shaded && !shaded)
-            [self do_unshade:CurrentTime];
-        else if (!_shaded && shaded && _shadable)
-            [self do_shade:CurrentTime];
-    }
+    if (_shaded && !shaded)
+        [self do_unshade:CurrentTime];
+    else if (!_shaded && shaded && _shadable && window_shading)
+        [self do_shade:CurrentTime];
 
     if(maximized && (_frame_attr & XP_FRAME_ATTR_ZOOM))
         [self do_maximize];
@@ -1423,21 +1354,24 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     long _atoms[32];
     int n_atoms = 0;
 
-    if(_window_class == QWM_WINDOW_CLASS_MODAL_DIALOG ||
-       _window_class == QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG)
+    if(_modal)
         _atoms[n_atoms++] = atoms.net_wm_state_modal;
     if(_minimized)
         _atoms[n_atoms++] = atoms.net_wm_state_hidden;
     if(_shaded)
         _atoms[n_atoms++] = atoms.net_wm_state_shaded;
-    if(!_in_window_menu)
+    if(!_in_window_menu) {
+        _atoms[n_atoms++] = atoms.net_wm_state_skip_pager;
         _atoms[n_atoms++] = atoms.net_wm_state_skip_taskbar;
+    }
     if(_fullscreen)
         _atoms[n_atoms++] = atoms.net_wm_state_fullscreen;
     if(X11RectEqualToRect(_current_frame, [_screen zoomed_rect:X11RectOrigin(_current_frame)])) {
         _atoms[n_atoms++] = atoms.net_wm_state_maximized_horiz;
         _atoms[n_atoms++] = atoms.net_wm_state_maximized_vert;
     }
+    if(_frame_behavior == XP_FRAME_CLASS_BEHAVIOR_STATIONARY)
+        _atoms[n_atoms++] = atoms.net_wm_state_sticky;
 
     XChangeProperty (x_dpy, _id, atoms.net_wm_state,
                      atoms.atom, 32, PropModeReplace, (unsigned char *) _atoms,
@@ -1457,7 +1391,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             [self do_unshade:CurrentTime];
         else
             [self do_shade:CurrentTime];
-    } else if (state == atoms.net_wm_state_skip_taskbar) {
+    } else if (state == atoms.net_wm_state_skip_taskbar ||
+               state == atoms.net_wm_state_skip_pager) {
         if (mode == 0)
             _in_window_menu = YES;
         else if (mode == 1)
@@ -1478,8 +1413,18 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             [self do_maximize];
         else if(maximized)
             [self do_zoom];
+    } if(state == atoms.net_wm_state_sticky) {
+        if(mode == 1 || (mode == 2 && _frame_behavior != XP_FRAME_CLASS_BEHAVIOR_STATIONARY))
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
+        else
+            _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+        // TODO: Better determine the !sticky case... managed or transient
+        need_update = YES;
     } else if(state == atoms.net_wm_state_fullscreen) {
         [self do_fullscreen:(mode == 1 || (mode == 2 && !_fullscreen))];
+    } else if(state == atoms.net_wm_state_modal) {
+        _modal = (state == 1 || (mode == 2 && !_modal));
+        need_update = YES;
     }
 
     if (need_update)
@@ -1542,7 +1487,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         /* hints[2] = decoration hints */
 
         if (!(hints[2] & 9))
-            [self set_class:QWM_WINDOW_CLASS_BORDERLESS];
+            _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
     }
     if (hints[3] != 0)
     {
@@ -1550,15 +1495,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
         switch (hints[3])
         {
-            case 1: case 3:
-                if (_window_class == QWM_WINDOW_CLASS_DOCUMENT)
-                    [self set_class:QWM_WINDOW_CLASS_MODAL_DIALOG];
-                break;
-
+            case 1:
             case 2:
-                if (_window_class == QWM_WINDOW_CLASS_DOCUMENT)
-                    [self set_class:QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG];
-                break;
+            case 3:
+                _modal = YES;
         }
     }
 }
@@ -1588,13 +1528,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _transient_for_id = 0;
             _transient_for = NULL;
         } else {
-            /* _NET_WM_WINDOW_TYPE_DIALOG indicates that this is a dialog window.
-             * If _NET_WM_WINDOW_TYPE is not set, then windows with
-             * WM_TRANSIENT_FOR set MUST be taken as this type.
-             */
-            if(!x_get_property(_id, atoms.net_wm_window_type, &data, 1, 1))
-                [self set_class:QWM_WINDOW_CLASS_DIALOG];
-
             /* Update the parent's transients */
             _transient_for->_transients = x_list_prepend(_transient_for->_transients, self);
         }
@@ -2207,7 +2140,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (!_has_unzoomed_frame) {
         _unzoomed_frame = _current_frame;
         _has_unzoomed_frame = YES;
-        _unzoomed_window_class = _window_class;
     }
 
     if(X11RectEqualToRect(_current_frame, maximized_rect)) {
@@ -2228,7 +2160,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (!_has_unzoomed_frame) {
         _unzoomed_frame = _current_frame;
         _has_unzoomed_frame = YES;
-        _unzoomed_window_class = _window_class;
     }
 
     if(!X11RectEqualToRect(_current_frame, maximized_rect)) {
@@ -2249,7 +2180,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (!_has_unzoomed_frame) {
         _has_unzoomed_frame = YES;
         _unzoomed_frame = _current_frame;
-        _unzoomed_window_class = _window_class;
     }
 
     /* We are changing our frame class, so we need to reparent_out */
@@ -2257,12 +2187,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         [self reparent_out];
 
     _fullscreen = flag;
-
-    if(_fullscreen) {
-        [self set_class:QWM_WINDOW_CLASS_BORDERLESS];
-    } else {
-        [self set_class:_unzoomed_window_class];
-    }
 
     if(decorated)
         [self reparent_in];

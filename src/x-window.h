@@ -31,27 +31,6 @@
 
 #include <X11/Xutil.h>
 
-/* These frame classes are internal to quartz-wm and are determined by
- * examining _NET_WM_WINDOW_TYPE, _NET_WM_STATE, _MOTIF_WM_HINTS, and
- * WM_TRANSIENT_FOR properties.
- *
- * These frame classes map to XP_FRAME_CLASS values as well as
- * different behaviors in quartz-wm ()
- */
-
-typedef enum {
-    QWM_WINDOW_CLASS_DOCUMENT,
-    QWM_WINDOW_CLASS_DIALOG,
-    QWM_WINDOW_CLASS_MODAL_DIALOG,
-    QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG,
-    QWM_WINDOW_CLASS_UTILITY,
-    QWM_WINDOW_CLASS_TOOLBAR,
-    QWM_WINDOW_CLASS_MENU,
-    QWM_WINDOW_CLASS_SPLASH,
-    QWM_WINDOW_CLASS_BORDERLESS,
-    QWM_WINDOW_CLASS_DESKTOP
-} qwm_window_class;
-
 @interface x_window : NSObject
 {
 @public
@@ -90,12 +69,16 @@ typedef enum {
      */
     XWindowAttributes _xattr;
 
+    /* Stored result from XGetWMHints() and XGetWMNormalHints() */
     XWMHints *_wm_hints;
+
+    /* Stored result from XGetWMNormalHints() */
     XSizeHints _size_hints;
     long _size_hints_supplied;
 
-    qwm_window_class _window_class, _unzoomed_window_class;
     xp_frame_attr  _frame_attr;
+    xp_frame_class _frame_decor;
+    xp_frame_class _frame_behavior;
 
     int _frame_title_height;
 
@@ -126,6 +109,7 @@ typedef enum {
     unsigned _always_click_through :1;
     unsigned _movable :1;
     unsigned _shadable :1;
+    unsigned _modal :1;
     unsigned _in_window_menu :1;
     unsigned _pending_raise :1;
 
