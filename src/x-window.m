@@ -44,6 +44,7 @@
 - (void) update_wm_protocols;
 - (void) update_wm_hints;
 - (void) update_size_hints;
+- (void) update_frame:(BOOL)do_decorate;
 - (void) update_net_wm_type_hints;
 - (void) update_net_wm_state_hints;
 - (void) update_net_wm_state_property;
@@ -464,42 +465,33 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     /* Get the initial attr of the child window */
     XGetWindowAttributes(x_dpy, _id, &_xattr);
 
-    /* Start with the default set. */
-    _always_click_through = NO;
-    _frame_attr  = (XP_FRAME_ATTR_CLOSE_BOX | XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
-    _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_MANAGED;
-    _frame_decor = XP_FRAME_CLASS_DECOR_LARGE;
-    _in_window_menu = YES;
-    _level = AppleWMWindowLevelNormal;
+    /* Get unmutable hints from attributes on the window */
+    [self update_shaped];
     _modal = NO;
     _movable = YES;
     _shadable = YES;
 
-    /* The ordering here is chosen so that most authoritative should go last. */
+    /* Set the window name */
     [self update_wm_name];
-    [self update_wm_protocols];
-    [self update_wm_hints];
+    
+    /* Window grouping hints */
     [self update_parent];
+    [self update_wm_hints];
     [self update_group];
-    [self update_size_hints];
-    [self update_shaped];
-    [self update_motif_hints];
-    [self update_net_wm_type_hints];
+
+    /* Get our colormap */
     [self update_colormaps];
 
-    if ((_size_hints.flags & (PMinSize | PMaxSize)) == (PMinSize | PMaxSize) &&
-        _size_hints.min_width >= _size_hints.max_width &&
-        _size_hints.min_height >= _size_hints.max_height) {
-        _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
-    }
+    /* Update wm_protocols */
+    [self update_wm_protocols];
     
-    _frame_title_height = frame_titlebar_height([self get_xp_frame_class]);
-
+    /* Setup our look */
+    _frame_attr = 0;
+    [self update_frame:NO];
     XSetWindowBorderWidth (x_dpy, _id, 0);
 
     /* Figure out our frame dimensions */
     _current_frame = [self construct_frame_from_winrect:X11RectMake(_xattr.x, _xattr.y, _xattr.width, _xattr.height)];
-
     _frame_height = _current_frame.height;
 
     [self reparent_in];
@@ -514,11 +506,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         XMapWindow(x_dpy, _frame_id);
 
     if(_level != AppleWMWindowLevelNormal)
-        XAppleWMSetWindowLevel(x_dpy, _frame_id, _level);
+        XAppleWMSetWindowLevel(x_dpy, _reparented ? _frame_id : _id, _level);
 
-    [self update_net_wm_state_hints];
-    [self update_net_wm_action_property];
-    [self update_net_wm_state_property];
     [self set_wm_state:NormalState];
     [self send_configure];
 
@@ -1109,6 +1098,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) update_size_hints
 {
     XGetWMNormalHints (x_dpy, _id, &_size_hints, &_size_hints_supplied);
+    
+    if ((_size_hints.flags & (PMinSize | PMaxSize)) == (PMinSize | PMaxSize) &&
+        _size_hints.min_width >= _size_hints.max_width &&
+        _size_hints.min_height >= _size_hints.max_height) {
+        _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
+    }
 }
 
 - (void) update_net_wm_type_hints
@@ -1427,8 +1422,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         need_update = YES;
     }
 
-    if (need_update)
+    if (need_update) {
         [self update_net_wm_state_property];
+        [self update_frame:YES];
+    }
 }
 
 - (void) update_net_wm_action_property
@@ -1503,6 +1500,54 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 }
 
+- (void) update_frame:(BOOL)do_decorate
+{
+    int old_level = _level;
+#if 0
+    /* TODO, handle change */
+    xp_frame_attr old_frame_attr = _frame_attr;
+    xp_frame_class old_frame_behavior = _frame_behavior;
+    xp_frame_class old_frame_decor = _frame_decor;
+#endif
+
+    /* Start with the default set. */
+    _always_click_through = NO;
+    _frame_attr  |= (XP_FRAME_ATTR_CLOSE_BOX | XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
+    _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_MANAGED;
+    _frame_decor = XP_FRAME_CLASS_DECOR_LARGE;
+    _in_window_menu = YES;
+    _level = AppleWMWindowLevelNormal;
+    _modal = NO;
+    _movable = YES;
+    _shadable = YES;
+    
+    [self update_size_hints]; // Can remove XP_FRAME_ATTR_GROW_BOX from _frame_attr
+    [self update_motif_hints];
+    [self update_net_wm_type_hints];
+    [self update_net_wm_state_hints];
+    
+    /* Handle determined properties */
+    if(_modal) {
+        _in_window_menu = NO;
+        _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
+    }
+
+    _frame_title_height = frame_titlebar_height([self get_xp_frame_class]);
+    
+    /* Notify listeners about our updated properties */
+    [self update_net_wm_action_property];
+    [self update_net_wm_state_property];
+
+    if(do_decorate) {
+        if(_level != old_level)
+            XAppleWMSetWindowLevel(x_dpy, _reparented ? _frame_id : _id, _level);
+        
+        // TODO: Handle change in XP_FRAME_CLASS_DECOR
+        // TODO: Handle change in window menu
+        [self decorate];
+    }
+}
+
 - (void) update_parent
 {
     long data;
@@ -1554,21 +1599,21 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) property_changed:(Atom)atom
 {
-    if(atom == atoms.wm_name) {
+    if(atom == atoms.wm_name ||
+       atom == atoms.net_wm_name) {
         [self update_wm_name];
+    } else if (atom == atoms.wm_transient_for) {
+        [self update_parent];
+        [self update_group];
+        [self update_frame:YES];
     } else if(atom == atoms.wm_hints) {
         [self update_wm_hints];
         [self update_group];
-    } else if(atom == atoms.wm_normal_hints) {
-        [self update_size_hints];
-    } else if (atom == atoms.wm_transient_for) {
-        [self update_parent];
-    } else if (atom == atoms.wm_protocols) {
-        [self update_wm_protocols];
+    } else if(atom == atoms.wm_normal_hints ||
+              atom == atoms.wm_protocols) {
+        [self update_frame:YES];
     } else if (atom == atoms.native_window_id) {
         _osx_id = kOSXNullWindowID;
-    } else if (atom == atoms.net_wm_name) {
-        [self update_wm_name];
     } else if (atom == atoms.wm_colormap_windows) {
         [self update_colormaps];
     }
