@@ -837,7 +837,6 @@ x_release_window_shortcut (int x)
 
 /* Preferences */
 
-static CFRunLoopObserverRef prefs_reload_observer_ref;
 BOOL prefs_reload = NO;
 
 static BOOL prefs_get_bool (CFStringRef key, BOOL def) {
@@ -903,13 +902,12 @@ static void prefs_reload_cb(CFRunLoopObserverRef observer,
 
 static void prefs_reload_init(void) {
     CFRunLoopObserverContext context = {0};
+    CFRunLoopObserverRef ref;
     
-    prefs_reload_observer_ref =
-        CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopBeforeWaiting,
-                                true, 0, prefs_reload_cb, &context);
+    ref = CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopBeforeWaiting,
+                                  true, 0, prefs_reload_cb, &context);
         
-    CFRunLoopAddObserver(CFRunLoopGetCurrent(), prefs_reload_observer_ref,
-                         kCFRunLoopDefaultMode);
+    CFRunLoopAddObserver(CFRunLoopGetCurrent(), ref, kCFRunLoopDefaultMode);
 }
 
 /* Startup */
