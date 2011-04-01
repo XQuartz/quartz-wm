@@ -1200,36 +1200,168 @@ static const char *gravity_type(int gravity) {
     n = x_get_property (_id, atoms.net_wm_window_type, _atoms, 16, 0);
 
     for (i = 0; class == -1 && i < n; i++) {
-        if((Atom)_atoms[i] == atoms.net_wm_window_type_desktop) {
-            /* _NET_WM_WINDOW_TYPE_DESKTOP indicates a desktop feature. This can
-             * include a single window containing desktop icons with the same
-             * dimensions as the screen, allowing the desktop environment to
-             * have full control of the desktop, without the need for proxying
-             * root window clicks. 
+        if((Atom)_atoms[i] == atoms.net_wm_window_type_combo) {
+            /* _NET_WM_WINDOW_TYPE_COMBO should be used on the windows that are
+             * popped up by combo boxes. An example is a window that appears
+             * below a text field with a list of suggested completions. This
+             * property is typically used on override-redirect windows.
              */
+
+            /* We should not be here because this type should be used for
+             * override-redirect windows.  Just draw borderless.
+             */
+            // TODO
+            break;
+        } else if((Atom)_atoms[i] == atoms.net_wm_window_type_desktop) {
+            /* _NET_WM_WINDOW_TYPE_DESKTOP indicates a desktop feature. This
+             * can include a single window containing desktop icons with the
+             * same dimensions as the screen, allowing the desktop environment
+             * to have full control of the desktop, without the need for
+             * proxying root window clicks. 
+             */
+
             class = QWM_WINDOW_CLASS_DESKTOP;
             _level = AppleWMWindowLevelDesktop;
             _click_through = YES;
             _shadable = NO;
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dialog) {
+            /* _NET_WM_WINDOW_TYPE_DIALOG indicates that this is a dialog
+             * window. If _NET_WM_WINDOW_TYPE is not set, then windows with
+             * WM_TRANSIENT_FOR set MUST be taken as this type.
+             */
+
+            class = QWM_WINDOW_CLASS_DIALOG;
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dnd) {
+            /* _NET_WM_WINDOW_TYPE_DND indicates that the window is being
+             * dragged. Clients should set this hint when the window in
+             * question contains a representation of an object being dragged
+             * from one place to another. An example would be a window
+             * containing an icon that is being dragged from one file manager
+             * window to another. This property is typically used on
+             * override-redirect windows.
+             */
+
+            /* We should not be here because this type should be used for
+             * override-redirect windows.  Just draw borderless.
+             */
+            // TODO
+            break;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dock) {
             /* _NET_WM_WINDOW_TYPE_DOCK indicates a dock or panel feature.
-             * Typically a Window Manager would keep such windows on top of all
-             * other windows. 
+             * Typically a Window Manager would keep such windows on top of
+             * all other windows. 
              */
-            /* Leave Dock windows at normal level - avoids problems
-             with tooltips and the KDE panel. 3205836. */
+            
+            /* KDE used to have issues, so we used to leave dock windows at the
+             * normal level, but that should not be the case any more.
+             * <rdar://problem/3205836> tooltips from KDE kicker show behind the kicker
+             */
             class = QWM_WINDOW_CLASS_BORDERLESS;
             _level = AppleWMWindowLevelDock;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_toolbar) {
-            /* _NET_WM_WINDOW_TYPE_TOOLBAR and _NET_WM_WINDOW_TYPE_MENU indicate
-             * toolbar and pinnable menu windows, respectively (i.e. toolbars
-             * and menus "torn off" from the main application). Windows of this
-             * type may set the WM_TRANSIENT_FOR hint indicating the main
-             * application window.
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dropdown_menu) {
+            /* _NET_WM_WINDOW_TYPE_DROPDOWN_MENU indicates that the window in
+             * question is a dropdown menu, ie., the kind of menu that
+             * typically appears when the user clicks on a menubar, as opposed
+             * to a popup menu which typically appears when the user
+             * right-clicks on an object. This property is typically used on
+             * override-redirect windows. 
              */
-            class = QWM_WINDOW_CLASS_TOOLBAR;
+             
+            /* We should not be here because this type should be used for
+             * override-redirect windows.  Just draw borderless.
+             */
+            // TODO
+            break;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_menu) {
+            /* _NET_WM_WINDOW_TYPE_TOOLBAR and _NET_WM_WINDOW_TYPE_MENU
+             * indicate toolbar and pinnable menu windows, respectively
+             * (i.e. toolbars and menus "torn off" from the main application).
+             * Windows of this type may set the WM_TRANSIENT_FOR hint
+             * indicating the main application window. Note that the
+             * _NET_WM_WINDOW_TYPE_MENU should be set on torn-off managed
+             * windows, where _NET_WM_WINDOW_TYPE_DROPDOWN_MENU and
+             * _NET_WM_WINDOW_TYPE_POPUP_MENU are typically used on
+             * override-redirect windows.
+             */
             class = QWM_WINDOW_CLASS_MENU;
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_normal) {
+            /* _NET_WM_WINDOW_TYPE_NORMAL indicates that this is a normal,
+             * top-level window. Windows with neither _NET_WM_WINDOW_TYPE nor
+             * WM_TRANSIENT_FOR set MUST be taken as this type. 
+             */
+            
+            /* We set class = QWM_WINDOW_CLASS_DOCUMENT by default, so this is unneccessary.
+             * Furthermore, it causes the motif borderless hint to be ignored if the window
+             * is also set _NET_WM_WINDOW_TYPE_NORMAL... which is common.  See
+             * http://xquartz.macosforge.org/trac/ticket/194
+             */
+            // class = QWM_WINDOW_CLASS_DOCUMENT;
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_notification) {
+            /* _NET_WM_WINDOW_TYPE_NOTIFICATION indicates a notification. An
+             * example of a notification would be a bubble appearing with
+             * informative text such as "Your laptop is running out of power"
+             * etc. This property is typically used on override-redirect
+             * windows.
+             */
+
+            /* We should not be here because this type should be used for
+             * override-redirect windows.  Just draw borderless.
+             */
+            // TODO
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_popup_menu) {
+            /* _NET_WM_WINDOW_TYPE_POPUP_MENU indicates that the window in
+             * question is a popup menu, ie., the kind of menu that typically
+             * appears when the user right clicks on an object, as opposed to a
+             * dropdown menu which typically appears when the user clicks on a
+             * menubar. This property is typically used on override-redirect
+             * windows. 
+             */
+
+            /* We should not be here because this type should be used for
+             * override-redirect windows.  Just draw borderless.
+             */
+            // TODO
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_splash) {
+            /* _NET_WM_WINDOW_TYPE_SPLASH indicates that the window is a splash
+             * screen displayed as an application is starting up. 
+             */
+
+            class = QWM_WINDOW_CLASS_SPLASH;
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_toolbar) {
+            /* _NET_WM_WINDOW_TYPE_TOOLBAR and _NET_WM_WINDOW_TYPE_MENU
+             * indicate toolbar and pinnable menu windows, respectively
+             * (i.e. toolbars and menus "torn off" from the main application).
+             * Windows of this type may set the WM_TRANSIENT_FOR hint
+             * indicating the main application window. Note that the
+             * _NET_WM_WINDOW_TYPE_MENU should be set on torn-off managed
+             * windows, where _NET_WM_WINDOW_TYPE_DROPDOWN_MENU and
+             * _NET_WM_WINDOW_TYPE_POPUP_MENU are typically used on
+             * override-redirect windows.
+             */
+
+            class = QWM_WINDOW_CLASS_TOOLBAR;
+            break;
+        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_tooltip) {
+            /* _NET_WM_WINDOW_TYPE_TOOLTIP indicates that the window in
+             * question is a tooltip, ie., a short piece of explanatory text
+             * that typically appear after the mouse cursor hovers over an
+             * object for a while. This property is typically used on
+             * override-redirect windows.
+             */
+
+            /* We should not be here because this type should be used for
+             * override-redirect windows.  Just draw borderless.
+             */
+            // TODO
+            break;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_utility) {
             /* _NET_WM_WINDOW_TYPE_UTILITY indicates a small persistent utility
              * window, such as a palette or toolbox. It is distinct from type
@@ -1240,28 +1372,7 @@ static const char *gravity_type(int gravity) {
              * WM_TRANSIENT_FOR hint indicating the main application window.
              */
             class = QWM_WINDOW_CLASS_UTILITY;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_splash) {
-            /* _NET_WM_WINDOW_TYPE_SPLASH indicates that the window is a splash
-             * screen displayed as an application is starting up. 
-             */
-            class = QWM_WINDOW_CLASS_SPLASH;
-        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dialog) {
-            /* _NET_WM_WINDOW_TYPE_DIALOG indicates that this is a dialog window.
-             * If _NET_WM_WINDOW_TYPE is not set, then windows with
-             * WM_TRANSIENT_FOR set MUST be taken as this type.
-             */
-            class = QWM_WINDOW_CLASS_DIALOG;
-/*      We set class = QWM_WINDOW_CLASS_DOCUMENT by default, so this is unneccessary.
- *      Furthermore, it causes the motif borderless hint to be ignored if the window
- *      is also set _NET_WM_WINDOW_TYPE_NORMAL... which is common.  See
- *      http://xquartz.macosforge.org/trac/ticket/194
- */
-//        } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_normal) {
-//            /* _NET_WM_WINDOW_TYPE_NORMAL indicates that this is a normal,
-//             * top-level window. Windows with neither _NET_WM_WINDOW_TYPE nor
-//             * WM_TRANSIENT_FOR set MUST be taken as this type. 
-//             */
-//            class = QWM_WINDOW_CLASS_DOCUMENT;
+            break;
         }
     }
     
