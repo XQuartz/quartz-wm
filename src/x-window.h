@@ -38,21 +38,7 @@
     Window _frame_id;
     Window _group_id;
 
-    /* This differs from _current_frame.height in that it is the height
-     * when the frame is not shaded.
-     */
-    int _frame_height;
-
-    /* "pending" is new frame bounds we've dispatched to X server, but
-     not yet seen come through in a configure-notify. "queued" is a
-     new set of bounds we want to set, but won't until we've seen
-     the configure-notify from the "pending" change. */
-
     X11Rect _current_frame;
-    X11Rect _pending_frame;
-    X11Rect _queued_frame;
-
-    X11Rect _unzoomed_frame;
 
     Window _tracking_id;
     X11Rect _tracking_rect;
@@ -69,16 +55,7 @@
      */
     XWindowAttributes _xattr;
 
-    /* Stored result from XGetWMHints() and XGetWMNormalHints() */
-    XWMHints *_wm_hints;
-
-    /* Stored result from XGetWMNormalHints() */
-    XSizeHints _size_hints;
-    long _size_hints_supplied;
-
     xp_frame_attr  _frame_attr;
-    xp_frame_class _frame_decor;
-    xp_frame_class _frame_behavior;
 
     int _frame_title_height;
 
@@ -86,17 +63,25 @@
 
     unsigned _reparented :1;
     unsigned _shaped :1;
-    unsigned _set_shape :1;
     unsigned _removed :1;
     unsigned _deleted :1;
     unsigned _focused :1;
+    unsigned _minimized :1;
+    unsigned _unmapped :1;
+    unsigned _always_click_through :1;
+    unsigned _movable :1;
+    unsigned _shadable :1;
+
+    NSString *_title;
+    int _shortcut_index;		/* 0 for unset */
+
+@private
+    unsigned _set_shape :1;
     unsigned _decorated :1;
     unsigned _fullscreen :1;
-    unsigned _minimized :1;
     unsigned _animating :1;		/* (by the dock) */
     unsigned _shaded :1;
     unsigned _hidden :1;
-    unsigned _unmapped :1;
     unsigned _client_unmapped :1;
     unsigned _does_wm_take_focus :1;
     unsigned _does_wm_delete_window :1;
@@ -106,20 +91,44 @@
     unsigned _pending_decorate :1;
     unsigned _resizing_title :1;
     unsigned _needs_configure_notify :1;
-    unsigned _always_click_through :1;
-    unsigned _movable :1;
-    unsigned _shadable :1;
     unsigned _modal :1;
     unsigned _in_window_menu :1;
     unsigned _pending_raise :1;
 
-    NSString *_title;
-    int _shortcut_index;		/* 0 for unset */
+    /* This differs from _current_frame.height in that it is the height
+     * when the frame is not shaded.
+     */
+    int _frame_height;
+
+    /* "pending" is new frame bounds we've dispatched to X server, but
+     not yet seen come through in a configure-notify. "queued" is a
+     new set of bounds we want to set, but won't until we've seen
+     the configure-notify from the "pending" change. */
+
+    X11Rect _pending_frame;
+    X11Rect _queued_frame;
+    X11Rect _unzoomed_frame;
+
+    /* Stored result from XGetWMHints() and XGetWMNormalHints() */
+    XWMHints *_wm_hints;
+
+    /* Stored result from XGetWMNormalHints() */
+    XSizeHints _size_hints;
+    long _size_hints_supplied;
+
+    xp_frame_class _frame_decor;
+    xp_frame_class _frame_behavior;
 
     Window *_colormap_windows;
     int _n_colormap_windows;
 
-@private
+    /* Store what our decorations were the last time we drew the frame.
+     * This is different from _frame_decor because it may be NONE due
+     * to _fullscreen.
+     */
+    xp_frame_class _drawn_frame_decor;
+
+    /* Mac IDs corresponding to these windows */
     OSXWindowID _osx_id;
     OSXWindowID _minimized_osx_id;
 

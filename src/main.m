@@ -893,7 +893,7 @@ static void prefs_reload_cb(CFRunLoopObserverRef observer,
             for(w_node = s->_window_list; w_node != NULL; w_node = w_node->next) {
                 w = w_node->data;
                 if(w->_shadable) {
-                    if(!window_shading && w->_shaded)
+                    if(!window_shading)
                         [w do_unshade:CurrentTime];
                     [w update_net_wm_action_property];
                 }
