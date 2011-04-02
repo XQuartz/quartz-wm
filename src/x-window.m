@@ -1,6 +1,6 @@
 /* x-window.m
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -61,7 +61,7 @@
 - (NSString *) resizing_title;
 - (NSString *) title;
 - (X11Rect) validate_frame_rect:(X11Rect)r
-                     from_user:(BOOL)uflag constrain:(BOOL)cflag;
+                      from_user:(BOOL)uflag constrain:(BOOL)cflag;
 - (X11Rect) frame_inner_rect:(X11Rect)or;
 - (X11Rect) client_rect:(X11Rect)or;
 @end
@@ -101,21 +101,21 @@ static const char *gravity_type(int gravity) {
 #define TRACE() DB("TRACE: %x\n", _id)
 
 #define DISABLE_EVENTS(wid, mask)				\
-    do {							\
-	x_grab_server (False);					\
-	XSelectInput (x_dpy, wid, mask);			\
-    } while (0)
+do {							\
+x_grab_server (False);					\
+XSelectInput (x_dpy, wid, mask);			\
+} while (0)
 
 #define ENABLE_EVENTS(wid, mask)				\
-    do {							\
-	XSelectInput (x_dpy, wid, mask);			\
-	x_ungrab_server ();					\
-    } while (0)
+do {							\
+XSelectInput (x_dpy, wid, mask);			\
+x_ungrab_server ();					\
+} while (0)
 
 #define BEFORE_LOCAL_MAP \
-    DISABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS & ~StructureNotifyMask)
+DISABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS & ~StructureNotifyMask)
 #define AFTER_LOCAL_MAP \
-    ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
+ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (Window) toplevel_id
 {
@@ -125,14 +125,14 @@ static const char *gravity_type(int gravity) {
 - (void) grab_events
 {
     int i, code;
-    
+
     for (i = 1; i <= 3; i++)
     {
         XGrabButton (x_dpy, i, AnyModifier, _id, False,
                      X_CLIENT_BUTTON_GRAB_EVENTS, GrabModeSync,
                      GrabModeSync, None, None);
     }
-    
+
     code = XKeysymToKeycode (x_dpy, XK_grave);
     if (code != 0 && x_meta_mod != 0)
     {
@@ -147,12 +147,12 @@ static const char *gravity_type(int gravity) {
 - (void) ungrab_events
 {
     int i, code;
-    
+
     for (i = 1; i <= 3; i++)
     {
         XUngrabButton (x_dpy, i, AnyModifier, _id);
     }
-    
+
     code = XKeysymToKeycode (x_dpy, XK_grave);
     if (code != 0)
     {
@@ -163,31 +163,31 @@ static const char *gravity_type(int gravity) {
 - (void) reparent_in
 {
     if (_reparented)
-	return;
+        return;
 
     TRACE ();
 
     if (_frame_id == 0)
     {
-	XSetWindowAttributes attr;
-	unsigned long attr_mask = 0;
+        XSetWindowAttributes attr;
+        unsigned long attr_mask = 0;
 
-	attr.override_redirect = True;
-	attr.colormap = _xattr.colormap;
-	attr.border_pixel = 0;
-	attr.bit_gravity = StaticGravity;
+        attr.override_redirect = True;
+        attr.colormap = _xattr.colormap;
+        attr.border_pixel = 0;
+        attr.bit_gravity = StaticGravity;
 
-	attr_mask |= (CWOverrideRedirect | CWColormap
-		      | CWBorderPixel | CWBitGravity);
+        attr_mask |= (CWOverrideRedirect | CWColormap
+                      | CWBorderPixel | CWBitGravity);
 
-	_frame_id = XCreateWindow (x_dpy, _screen->_root,
-				   _current_frame.x, _current_frame.y,
-				   _current_frame.width, _current_frame.height,
-				   0, _xattr.depth,
-				   InputOutput, _xattr.visual,
-				   attr_mask, &attr);
+        _frame_id = XCreateWindow (x_dpy, _screen->_root,
+                                   _current_frame.x, _current_frame.y,
+                                   _current_frame.width, _current_frame.height,
+                                   0, _xattr.depth,
+                                   InputOutput, _xattr.visual,
+                                   attr_mask, &attr);
 
-	XSelectInput (x_dpy, _frame_id, X_FRAME_WINDOW_EVENTS);
+        XSelectInput (x_dpy, _frame_id, X_FRAME_WINDOW_EVENTS);
     }
 
     [self update_shape];
@@ -196,7 +196,7 @@ static const char *gravity_type(int gravity) {
     XReparentWindow (x_dpy, _id, _frame_id, 0, _frame_title_height);
     XLowerWindow (x_dpy, _id);
     AFTER_LOCAL_MAP;
-    
+
     XAddToSaveSet (x_dpy, _id);
 
     _reparented = YES;
@@ -251,7 +251,7 @@ static const char *gravity_type(int gravity) {
         _transient_for->_transients = x_list_remove(_transient_for->_transients, self);
         _transient_for = NULL;
     }
-    
+
     /* Update our children to not be transient for us */
     if(_transients) {
         x_list *node;
@@ -259,7 +259,7 @@ static const char *gravity_type(int gravity) {
             x_window *child = node->data;
             child->_transient_for = NULL;
         }
-        
+
         x_list_free(_transients);
         _transients = NULL;
     }
@@ -303,29 +303,29 @@ static const char *gravity_type(int gravity) {
 - (void) place_window {
     x_list *group, *order;
     X11Rect r;
-    
+
     r = _current_frame;
 
     group = [self window_group];
     order = x_list_remove ([_screen stacking_order:group], self);
     x_list_free (group);
-    
+
     if (_size_hints.flags & (USPosition | PPosition)) {
         /* Do nothing except check position is valid. */
     } else if (_transient_for_id == _screen->_root) {
         X11Point p;
-        
+
         /* Convention is this is an unparented dialog. Center on head
          * of topmost window in group.
          */
-        
+
         if (order == NULL)
             p = X11PointMake (0 - _screen->_x, 0 - _screen->_y);
         else
             p = X11RectOrigin(((x_window *) order->data)->_current_frame);
-        
+
         p = [_screen center_on_head:p];
-        
+
         r.x = p.x - _current_frame.width / 2.0;
         r.y = p.y - (_frame_height >> 1);
     } else if (_transient_for != NULL) {
@@ -333,10 +333,10 @@ static const char *gravity_type(int gravity) {
          of the parent window. */
 
         r.x =   _transient_for->_current_frame.x
-                     + (_transient_for->_current_frame.width / 2.0)
-                     - (_current_frame.width / 2.0);
-        r.y = _transient_for->_current_frame.y + 
-                     _transient_for->_frame_title_height;
+        + (_transient_for->_current_frame.width / 2.0)
+        - (_current_frame.width / 2.0);
+        r.y = _transient_for->_current_frame.y +
+        _transient_for->_frame_title_height;
     } else {
         /* Document style placement. Find the topmost document window
          * in the group, then place ourselves down and to the right of it.
@@ -347,13 +347,13 @@ static const char *gravity_type(int gravity) {
             X11Rect zoom_rect = [_screen zoomed_rect];
             r.x = zoom_rect.x;
             r.y = zoom_rect.y;
- 
+
             /* But cascade from other windows here. */
             while ([_screen find_window_at:X11RectOrigin(r) slop:8] != nil)
             {
                 r.x += WINDOW_PLACE_DELTA_X;
                 r.y += WINDOW_PLACE_DELTA_Y;
-                
+
                 if (r.x + r.width > _screen->_x + _screen->_width
                     || r.y + r.height > _screen->_y + _screen->_height)
                 {
@@ -367,14 +367,14 @@ static const char *gravity_type(int gravity) {
         else
         {
             x_window *w = order->data;
-            
+
             r.x = w->_current_frame.x + WINDOW_PLACE_DELTA_X;
             r.y = w->_current_frame.y + WINDOW_PLACE_DELTA_Y;
         }
     }
-    
+
     x_list_free (order);
-    
+
     r = [self validate_frame_rect:r from_user:NO constrain:NO];
     [self resize_frame:r];
 }
@@ -405,7 +405,7 @@ static const char *gravity_type(int gravity) {
 {
     if (_decorated)
         return;				/* too late */
-    
+
     switch (class) {
         case QWM_WINDOW_CLASS_DOCUMENT:
             break;
@@ -414,13 +414,13 @@ static const char *gravity_type(int gravity) {
             _in_window_menu = NO;
             _frame_attr &= ~XP_FRAME_ATTR_ZOOM;
             break;
-            
+
         case QWM_WINDOW_CLASS_MODAL_DIALOG:
         case QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG:
             _in_window_menu = NO;
             _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
             break;
-            
+
         case QWM_WINDOW_CLASS_MENU:
         case QWM_WINDOW_CLASS_TOOLBAR:
             _level = AppleWMWindowLevelTornOff;
@@ -429,7 +429,7 @@ static const char *gravity_type(int gravity) {
             _shadable = NO;
             _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
             break;
-            
+
         case QWM_WINDOW_CLASS_SPLASH:
             _level = AppleWMWindowLevelFloating;
             _in_window_menu = NO;
@@ -437,30 +437,30 @@ static const char *gravity_type(int gravity) {
             _always_click_through = YES;
             _shadable = NO;
             break;
-            
+
         case QWM_WINDOW_CLASS_UTILITY:
             _level = AppleWMWindowLevelFloating;
             _in_window_menu = NO;
             _always_click_through = YES;
             _shadable = NO;
             break;
-            
+
         case QWM_WINDOW_CLASS_BORDERLESS:
             _always_click_through = YES;
             _in_window_menu = NO;
             _shadable = NO;
             _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
             break;
-            
+
         case QWM_WINDOW_CLASS_DESKTOP:
             _level = AppleWMWindowLevelDesktop;
             _in_window_menu = NO;
             _always_click_through = YES;
             _shadable = NO;
             _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
-            break;       
+            break;
     }
-    
+
     _window_class = class;
     _frame_title_height = frame_titlebar_height([self get_xp_frame_class]);
 }
@@ -575,7 +575,7 @@ static const char *gravity_type(int gravity) {
     }
 
     XSetWindowBorderWidth (x_dpy, _id, 0);
-    
+
     /* Figure out our frame dimensions */
     _current_frame = [self construct_frame_from_winrect:X11RectMake(_xattr.x, _xattr.y, _xattr.width, _xattr.height)];
 
@@ -591,16 +591,16 @@ static const char *gravity_type(int gravity) {
     XMapWindow(x_dpy, _id);
     if(_reparented)
         XMapWindow(x_dpy, _frame_id);
-    
+
     if(_level != AppleWMWindowLevelNormal)
         XAppleWMSetWindowLevel(x_dpy, _frame_id, _level);
-    
+
     [self update_net_wm_state_hints];
     [self update_net_wm_action_property];
     [self update_net_wm_state_property];
     [self set_wm_state:NormalState];
     [self send_configure];
-    
+
     if (_wm_hints != NULL &&
         _wm_hints->flags & StateHint &&
         _wm_hints->initial_state == IconicState) {
@@ -621,7 +621,7 @@ static const char *gravity_type(int gravity) {
 
     /* We need to do update_parent again here, since we now have the CGWindow */
     [self update_parent];
-    
+
     return self;
 }
 
@@ -635,27 +635,27 @@ static const char *gravity_type(int gravity) {
     resized = !(_current_frame.width == r.width && _current_frame.height == r.height);
 
     if (resized)
-	[_screen disable_update];
+        [_screen disable_update];
 
     XMoveResizeWindow (x_dpy, _frame_id,
-		       (int) r.x, (int) r.y,
-		       (int) r.width, (int) r.height);
+                       (int) r.x, (int) r.y,
+                       (int) r.width, (int) r.height);
     _pending_frame = r;
     _pending_frame_change = YES;
 
     if (resized)
     {
-	X11Rect or = X11RectMake(0, 0, r.width, r.height);
+        X11Rect or = X11RectMake(0, 0, r.width, r.height);
 
-	[self update_shape:or];
-	[self decorate_rect:or];
+        [self update_shape:or];
+        [self decorate_rect:or];
 
-	[_screen reenable_update];
+        [_screen reenable_update];
 
-	/* we'll physically resize the client window when we receive
-	   the ConfigureNotify for the frame being resized, which
-	   will cause a real ConfigureNotify event to be sent. */
-	_needs_configure_notify = NO;
+        /* we'll physically resize the client window when we receive
+         the ConfigureNotify for the frame being resized, which
+         will cause a real ConfigureNotify event to be sent. */
+        _needs_configure_notify = NO;
     }
 }
 
@@ -674,7 +674,7 @@ static const char *gravity_type(int gravity) {
     if(!_pending_frame_change) {
         if(!flag && X11RectEqualToRect(_current_frame, fr))
             return;
-        
+
         [self do_resize:fr];
         return;
     }
@@ -684,7 +684,7 @@ static const char *gravity_type(int gravity) {
             if(_pending_frame.x == r.x && _pending_frame.y == r.y)
                 return;
 
-            /* Moves can be pipelined. */            
+            /* Moves can be pipelined. */
             XMoveWindow(x_dpy, _frame_id, (int) r.x, (int) r.y);
             _pending_frame.x = r.x;
             _pending_frame.y = r.y;
@@ -692,7 +692,7 @@ static const char *gravity_type(int gravity) {
             return;
         }
     }
-    
+
     _queued_frame = r;
     _queued_frame_change = YES;
 }
@@ -705,30 +705,30 @@ static const char *gravity_type(int gravity) {
 - (void) report_frame_size:(X11Rect)r
 {
     BOOL moved = NO, resized = NO;
-    
+
     TRACE ();
-    
+
     if(_current_frame.x != r.x ||
        _current_frame.y != r.y) {
-        
+
         _xattr.x = [self client_rect:r].x;
         _xattr.y = [self client_rect:r].y;
-        
+
         moved = YES;
     }
-    
+
     if(_current_frame.width  != r.width ||
        _current_frame.height != r.height) {
         if(!_shaded)
             _frame_height = r.height;
-        
+
         _xattr.width = r.width; // (_frame_border_width << 1);
         _xattr.height = _frame_height - _frame_title_height;
-        
+
         DISABLE_EVENTS(_id, 0);
         XResizeWindow(x_dpy, _id, _xattr.width, _xattr.height);
         ENABLE_EVENTS(_id, X_CLIENT_WINDOW_EVENTS);
-        
+
         resized = YES;
     }
 
@@ -736,25 +736,25 @@ static const char *gravity_type(int gravity) {
 
     if(moved && !resized)
         [self send_configure];
-    
+
     if(_pending_frame_change) {
         _pending_frame_change = NO;
-        
+
         if(_queued_frame_change) {
             X11Rect fr;
-            
+
             fr = _queued_frame;
-            
+
             if(_shaded) {
                 fr.height = _frame_title_height;
                 _frame_height = r.height;
             }
-            
+
             _queued_frame_change = NO;
             [self do_resize:fr];
         }
     }
-    
+
     if (!_pending_frame_change && _pending_decorate)
         [self decorate];
 }
@@ -804,8 +804,8 @@ static const char *gravity_type(int gravity) {
 
     // _frame_border_width
     return X11RectMake(or.x,
-                      or.y + _frame_title_height,
-                      or.width, height);
+                       or.y + _frame_title_height,
+                       or.width, height);
 }
 
 /* Calculate the client rect that would be required to generate this outer
@@ -820,7 +820,7 @@ static const char *gravity_type(int gravity) {
     int y_pad_t = _frame_title_height;
     int y_pad_b = 0; // _frame_border_width
     int w, h;
-    
+
     switch(gravity) {
         case NorthWestGravity:
             break;
@@ -863,7 +863,7 @@ static const char *gravity_type(int gravity) {
     /* w and h are the easy ones */
     w = or.width - x_pad_r - x_pad_l;
     h = or.height - y_pad_t - y_pad_b;
-    
+
     return X11RectMake(x, y, w, h);
 }
 
@@ -872,68 +872,68 @@ static const char *gravity_type(int gravity) {
 {
     if (_frame_title_height > 0 && _tracking_id == 0)
     {
-	XSetWindowAttributes attr;
+        XSetWindowAttributes attr;
 
-	/* Initialize pointer tracking window for prelighting */
-	_tracking_rect = frame_tracking_rect(or, ir, [self get_xp_frame_class]);
-	attr.override_redirect = True;
-	_tracking_id = XCreateWindow (x_dpy, _frame_id,
-				      _tracking_rect.x,
-				      _tracking_rect.y,
-				      _tracking_rect.width,
-				      _tracking_rect.height,
-				      0, 0, InputOnly, _xattr.visual,
-				      CWOverrideRedirect, &attr);
-	XMapRaised (x_dpy, _tracking_id);
-	XSelectInput (x_dpy, _tracking_id, X_TRACKING_WINDOW_EVENTS);
+        /* Initialize pointer tracking window for prelighting */
+        _tracking_rect = frame_tracking_rect(or, ir, [self get_xp_frame_class]);
+        attr.override_redirect = True;
+        _tracking_id = XCreateWindow (x_dpy, _frame_id,
+                                      _tracking_rect.x,
+                                      _tracking_rect.y,
+                                      _tracking_rect.width,
+                                      _tracking_rect.height,
+                                      0, 0, InputOnly, _xattr.visual,
+                                      CWOverrideRedirect, &attr);
+        XMapRaised (x_dpy, _tracking_id);
+        XSelectInput (x_dpy, _tracking_id, X_TRACKING_WINDOW_EVENTS);
     }
 
-    if (_growbox_id == 0 && !_shaded && 
+    if (_growbox_id == 0 && !_shaded &&
         XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_ATTR_GROW_BOX))
     {
-	XSetWindowAttributes attr;
-	unsigned long attr_mask = 0;
+        XSetWindowAttributes attr;
+        unsigned long attr_mask = 0;
 
-	TRACE ();
+        TRACE ();
 
-	attr.override_redirect = True;
-	attr.win_gravity = SouthEastGravity;
-	attr.colormap = _xattr.colormap;
-	attr.border_pixel = 0;
+        attr.override_redirect = True;
+        attr.win_gravity = SouthEastGravity;
+        attr.colormap = _xattr.colormap;
+        attr.border_pixel = 0;
 
-	attr_mask |= (CWOverrideRedirect | CWColormap
-		      | CWBorderPixel | CWWinGravity);
+        attr_mask |= (CWOverrideRedirect | CWColormap
+                      | CWBorderPixel | CWWinGravity);
 
-	_growbox_rect = frame_growbox_rect (or, ir, [self get_xp_frame_class]);
-	_growbox_id = XCreateWindow (x_dpy, _frame_id,
-				     _growbox_rect.x,
-				     _growbox_rect.y,
-				     _growbox_rect.width,
-				     _growbox_rect.height,
-				     0, _xattr.depth,
-				     InputOutput, _xattr.visual,
-				     attr_mask, &attr);
-	XMapRaised (x_dpy, _growbox_id);
-	XSelectInput (x_dpy, _growbox_id, X_GROWBOX_WINDOW_EVENTS);
+        _growbox_rect = frame_growbox_rect (or, ir, [self get_xp_frame_class]);
+        _growbox_id = XCreateWindow (x_dpy, _frame_id,
+                                     _growbox_rect.x,
+                                     _growbox_rect.y,
+                                     _growbox_rect.width,
+                                     _growbox_rect.height,
+                                     0, _xattr.depth,
+                                     InputOutput, _xattr.visual,
+                                     attr_mask, &attr);
+        XMapRaised (x_dpy, _growbox_id);
+        XSelectInput (x_dpy, _growbox_id, X_GROWBOX_WINDOW_EVENTS);
     }
     else if (_growbox_id != 0 && (!XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_ATTR_GROW_BOX) || _shaded))
     {
-	XDestroyWindow (x_dpy, _growbox_id);
-	_growbox_id = 0;
+        XDestroyWindow (x_dpy, _growbox_id);
+        _growbox_id = 0;
     }
     else if (_growbox_id != 0 && reposition)
     {
 #ifdef MORE_ROUNDTRIPS
-	_growbox_rect = frame_growbox_rect (or, ir, [self get_xp_frame_class]);
+        _growbox_rect = frame_growbox_rect (or, ir, [self get_xp_frame_class]);
 #else
-	_growbox_rect.x = or.width - _growbox_rect.width;
-	_growbox_rect.y = or.height - _growbox_rect.height;
+        _growbox_rect.x = or.width - _growbox_rect.width;
+        _growbox_rect.y = or.height - _growbox_rect.height;
 #endif
-	XMoveResizeWindow (x_dpy, _growbox_id,
-			   _growbox_rect.x,
-			   _growbox_rect.y,
-			   _growbox_rect.width,
-			   _growbox_rect.height);
+        XMoveResizeWindow (x_dpy, _growbox_id,
+                           _growbox_rect.x,
+                           _growbox_rect.y,
+                           _growbox_rect.width,
+                           _growbox_rect.height);
     }
 }
 
@@ -944,7 +944,7 @@ static const char *gravity_type(int gravity) {
     int bounding, clip;
 
     XShapeQueryExtents (x_dpy, _id, &bounding, &xws, &yws,
-			&wws, &hws, &clip, &xbs, &ybs, &wbs, &hbs);
+                        &wws, &hws, &clip, &xbs, &ybs, &wbs, &hbs);
 
     _shaped = bounding ? YES : NO;
 }
@@ -963,37 +963,37 @@ static const char *gravity_type(int gravity) {
 
     if (_shaped)
     {
-	r[0].x = 0;
-	r[0].y = 0;
-	r[0].width = or.width;
-	r[0].height = ((_shaped || _shaded)
-		       ? _frame_title_height : or.height);
-	nr = 1;
+        r[0].x = 0;
+        r[0].y = 0;
+        r[0].width = or.width;
+        r[0].height = ((_shaped || _shaded)
+                       ? _frame_title_height : or.height);
+        nr = 1;
 
-	if (_growbox_id != 0)
-	{
-	    r[1].x = _growbox_rect.x;
-	    r[1].y = _growbox_rect.y;
-	    r[1].width = _growbox_rect.width;
-	    r[1].height = _growbox_rect.height;
-	    nr = 2;
-	}
+        if (_growbox_id != 0)
+        {
+            r[1].x = _growbox_rect.x;
+            r[1].y = _growbox_rect.y;
+            r[1].width = _growbox_rect.width;
+            r[1].height = _growbox_rect.height;
+            nr = 2;
+        }
 
-	XShapeCombineRectangles (x_dpy, _frame_id, ShapeBounding,
-				 0, 0, r, nr, ShapeSet, Unsorted);
+        XShapeCombineRectangles (x_dpy, _frame_id, ShapeBounding,
+                                 0, 0, r, nr, ShapeSet, Unsorted);
 
-	XShapeCombineShape (x_dpy, _frame_id, ShapeBounding,
-			    ir.x, ir.y, _id,
-			    ShapeBounding, ShapeUnion);
+        XShapeCombineShape (x_dpy, _frame_id, ShapeBounding,
+                            ir.x, ir.y, _id,
+                            ShapeBounding, ShapeUnion);
 
-	_set_shape = YES;
+        _set_shape = YES;
     }
     else if (_set_shape)
     {
-	XShapeCombineMask (x_dpy, _frame_id, ShapeBounding,
-			   0, 0, None, ShapeSet);
+        XShapeCombineMask (x_dpy, _frame_id, ShapeBounding,
+                           0, 0, None, ShapeSet);
 
-	_set_shape = NO;
+        _set_shape = NO;
     }
 }
 
@@ -1005,13 +1005,13 @@ static const char *gravity_type(int gravity) {
 - (OSXWindowID) get_osx_id
 {
     if (_osx_id == kOSXNullWindowID) {
-	Window id = [self toplevel_id];
-	long data;
+        Window id = [self toplevel_id];
+        long data;
 
-	/* FIXME: Add query to AppleWM? */
+        /* FIXME: Add query to AppleWM? */
 
-	if (x_get_property (id, atoms.native_window_id, &data, 1, 1))
-	    _osx_id = (OSXWindowID) data;
+        if (x_get_property (id, atoms.native_window_id, &data, 1, 1))
+            _osx_id = (OSXWindowID) data;
     }
 
     return _osx_id;
@@ -1025,7 +1025,7 @@ static const char *gravity_type(int gravity) {
     data[1] = 0;			/* icon window */
 
     XChangeProperty (x_dpy, _id, atoms.wm_state, atoms.wm_state,
-		     32, PropModeReplace, (unsigned char *) data, 2);
+                     32, PropModeReplace, (unsigned char *) data, 2);
 }
 
 /* Don't allow us to close the window if there are modal windows
@@ -1050,11 +1050,11 @@ static const char *gravity_type(int gravity) {
 {
     X11Rect ir;
     unsigned frame_attr = _frame_attr;
-    
+
     if (!_reparented || _hidden)
     {
-	_pending_decorate = YES;
-	return;
+        _pending_decorate = YES;
+        return;
     }
 
     TRACE ();
@@ -1068,7 +1068,7 @@ static const char *gravity_type(int gravity) {
     }
 
     draw_frame (_screen->_id, _frame_id, or, ir, [self get_xp_frame_class],
-		frame_attr, (CFStringRef) [self title]);
+                frame_attr, (CFStringRef) [self title]);
 
     _decorated = YES;
     _pending_decorate = NO;
@@ -1078,8 +1078,8 @@ static const char *gravity_type(int gravity) {
 {
     if (_pending_frame_change)
     {
-	_pending_decorate = YES;
-	return;
+        _pending_decorate = YES;
+        return;
     }
 
     [self decorate_rect:[self frame_outer_rect]];
@@ -1097,13 +1097,13 @@ static const char *gravity_type(int gravity) {
     resizing = _resizing_title ? [self resizing_title] : nil;
 
     if (_title != nil && resizing != nil)
-	return [NSString stringWithFormat:@"%@ - %@", _title, resizing];
+        return [NSString stringWithFormat:@"%@ - %@", _title, resizing];
     else if (_title != nil)
-	return _title;
+        return _title;
     else if (resizing != nil)
-	return resizing;
+        return resizing;
     else
-	return @"";
+        return @"";
 }
 
 - (void) update_wm_name
@@ -1114,46 +1114,46 @@ static const char *gravity_type(int gravity) {
     old = _title;
 
     new_ = x_get_string_property (_id, atoms.net_wm_name);
-    
+
     if (new_ == nil && XGetWMName (x_dpy, _id, &prop) && prop.value)
     {
-	if (prop.nitems > 0)
-	{
-	    char **list;
-	    int err, count;
+        if (prop.nitems > 0)
+        {
+            char **list;
+            int err, count;
 
-	    prop.nitems = strlen((char *) prop.value);
-	    err = Xutf8TextPropertyToTextList (x_dpy, &prop, &list, &count);
+            prop.nitems = strlen((char *) prop.value);
+            err = Xutf8TextPropertyToTextList (x_dpy, &prop, &list, &count);
 
-	    if (err >= Success)
-	    {
-		if (count > 0)
-		{
-		    new_ = [NSString stringWithUTF8String: list[0]];
-		    XFreeStringList (list);
-		}
-	    }
-	    else
-		new_ = [NSString stringWithUTF8String:(char *) prop.value];
+            if (err >= Success)
+            {
+                if (count > 0)
+                {
+                    new_ = [NSString stringWithUTF8String: list[0]];
+                    XFreeStringList (list);
+                }
+            }
+            else
+                new_ = [NSString stringWithUTF8String:(char *) prop.value];
 
-	    XFree (prop.value);
-	}
+            XFree (prop.value);
+        }
     }
 
     if (new_ != nil && (old == nil || ![old isEqualToString:new_]))
     {
-	_title = [new_ retain];
+        _title = [new_ retain];
     }
 
     if (old != nil && _title != old)
     {
-	[old release];
+        [old release];
     }
 
     if (_title != old)
     {
-	[self decorate];
-	x_update_window_in_menu (self);
+        [self decorate];
+        x_update_window_in_menu (self);
     }
 }
 
@@ -1167,21 +1167,21 @@ static const char *gravity_type(int gravity) {
 
     if (XGetWMProtocols (x_dpy, _id, &protocols, &n) != 0)
     {
-	for (i = 0; i < n; i++)
-	{
-	    if (protocols[i] == atoms.wm_take_focus)
-		_does_wm_take_focus = YES;
-	    else if (protocols[i] == atoms.wm_delete_window)
-		_does_wm_delete_window = YES;
-	}
-	XFree (protocols);
+        for (i = 0; i < n; i++)
+        {
+            if (protocols[i] == atoms.wm_take_focus)
+                _does_wm_take_focus = YES;
+            else if (protocols[i] == atoms.wm_delete_window)
+                _does_wm_delete_window = YES;
+        }
+        XFree (protocols);
     }
 }
 
 - (void) update_wm_hints
 {
     if (_wm_hints != NULL)
-	XFree (_wm_hints);
+        XFree (_wm_hints);
 
     _wm_hints = XGetWMHints (x_dpy, _id);
 }
@@ -1216,7 +1216,7 @@ static const char *gravity_type(int gravity) {
              * can include a single window containing desktop icons with the
              * same dimensions as the screen, allowing the desktop environment
              * to have full control of the desktop, without the need for
-             * proxying root window clicks. 
+             * proxying root window clicks.
              */
 
             class = QWM_WINDOW_CLASS_DESKTOP;
@@ -1249,9 +1249,9 @@ static const char *gravity_type(int gravity) {
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_dock) {
             /* _NET_WM_WINDOW_TYPE_DOCK indicates a dock or panel feature.
              * Typically a Window Manager would keep such windows on top of
-             * all other windows. 
+             * all other windows.
              */
-            
+
             /* KDE used to have issues, so we used to leave dock windows at the
              * normal level, but that should not be the case any more.
              * <rdar://problem/3205836> tooltips from KDE kicker show behind the kicker
@@ -1265,9 +1265,9 @@ static const char *gravity_type(int gravity) {
              * typically appears when the user clicks on a menubar, as opposed
              * to a popup menu which typically appears when the user
              * right-clicks on an object. This property is typically used on
-             * override-redirect windows. 
+             * override-redirect windows.
              */
-             
+
             /* We should not be here because this type should be used for
              * override-redirect windows.  Just draw borderless.
              */
@@ -1289,9 +1289,9 @@ static const char *gravity_type(int gravity) {
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_normal) {
             /* _NET_WM_WINDOW_TYPE_NORMAL indicates that this is a normal,
              * top-level window. Windows with neither _NET_WM_WINDOW_TYPE nor
-             * WM_TRANSIENT_FOR set MUST be taken as this type. 
+             * WM_TRANSIENT_FOR set MUST be taken as this type.
              */
-            
+
             /* We set class = QWM_WINDOW_CLASS_DOCUMENT by default, so this is unneccessary.
              * Furthermore, it causes the motif borderless hint to be ignored if the window
              * is also set _NET_WM_WINDOW_TYPE_NORMAL... which is common.  See
@@ -1318,7 +1318,7 @@ static const char *gravity_type(int gravity) {
              * appears when the user right clicks on an object, as opposed to a
              * dropdown menu which typically appears when the user clicks on a
              * menubar. This property is typically used on override-redirect
-             * windows. 
+             * windows.
              */
 
             /* We should not be here because this type should be used for
@@ -1328,7 +1328,7 @@ static const char *gravity_type(int gravity) {
             break;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_splash) {
             /* _NET_WM_WINDOW_TYPE_SPLASH indicates that the window is a splash
-             * screen displayed as an application is starting up. 
+             * screen displayed as an application is starting up.
              */
 
             class = QWM_WINDOW_CLASS_SPLASH;
@@ -1373,7 +1373,7 @@ static const char *gravity_type(int gravity) {
             break;
         }
     }
-    
+
     if (class != -1)
         [self set_class:class];
 }
@@ -1422,9 +1422,9 @@ static const char *gravity_type(int gravity) {
 {
     long _atoms[32];
     int n_atoms = 0;
-    
+
     if(_window_class == QWM_WINDOW_CLASS_MODAL_DIALOG ||
-        _window_class == QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG)
+       _window_class == QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG)
         _atoms[n_atoms++] = atoms.net_wm_state_modal;
     if(_minimized)
         _atoms[n_atoms++] = atoms.net_wm_state_hidden;
@@ -1447,7 +1447,7 @@ static const char *gravity_type(int gravity) {
 - (void) do_net_wm_state_change:(int)mode atom:(Atom)state
 {
     BOOL need_update = NO;
-    
+
     /* _NET_WM_STATE_REMOVE        0    remove/unset property
      * _NET_WM_STATE_ADD           1    add/set property
      * _NET_WM_STATE_TOGGLE        2    toggle property
@@ -1464,12 +1464,12 @@ static const char *gravity_type(int gravity) {
             _in_window_menu = NO;
         else
             _in_window_menu = !_in_window_menu;
-        
+
         if (_in_window_menu)
             x_add_window_to_menu (self);
         else
             x_remove_window_from_menu (self);
-        
+
         need_update = YES;
     } else if(state == atoms.net_wm_state_maximized_horiz ||
               state == atoms.net_wm_state_maximized_vert) {
@@ -1479,18 +1479,18 @@ static const char *gravity_type(int gravity) {
         else if(maximized)
             [self do_zoom];
     } else if(state == atoms.net_wm_state_fullscreen) {
-            [self do_fullscreen:(mode == 1 || (mode == 2 && !_fullscreen))];
+        [self do_fullscreen:(mode == 1 || (mode == 2 && !_fullscreen))];
     }
-    
+
     if (need_update)
         [self update_net_wm_state_property];
 }
-                
+
 - (void) update_net_wm_action_property
 {
     long _atoms[32];
     int n_atoms = 0;
-    
+
     if (_movable)
         _atoms[n_atoms++] = atoms.net_wm_action_move;
     if (_frame_attr & XP_FRAME_ATTR_GROW_BOX)
@@ -1508,7 +1508,7 @@ static const char *gravity_type(int gravity) {
     if ((_frame_attr & XP_FRAME_ATTR_CLOSE_BOX) && ![self has_modal_descendents]) {
         _atoms[n_atoms++] = atoms.net_wm_action_close;
     }
-    
+
     XChangeProperty (x_dpy, _id, atoms.net_wm_allowed_actions, atoms.atom,
                      32, PropModeReplace, (unsigned char *) _atoms, n_atoms);
 }
@@ -1526,40 +1526,40 @@ static const char *gravity_type(int gravity) {
 
     if (hints[0] & 1)
     {
-	/* hints[1] = functional hints */
+        /* hints[1] = functional hints */
 
-	if (!(hints[1] & 3))
-	    _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
-	if (!(hints[1] & 9))
-	    _frame_attr &= ~XP_FRAME_ATTR_COLLAPSE;
-	if (!(hints[1] & 17))
-	    _frame_attr &= ~XP_FRAME_ATTR_ZOOM;
-	if (!(hints[1] & 33))
-	    _frame_attr &= ~XP_FRAME_ATTR_CLOSE_BOX;
+        if (!(hints[1] & 3))
+            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
+        if (!(hints[1] & 9))
+            _frame_attr &= ~XP_FRAME_ATTR_COLLAPSE;
+        if (!(hints[1] & 17))
+            _frame_attr &= ~XP_FRAME_ATTR_ZOOM;
+        if (!(hints[1] & 33))
+            _frame_attr &= ~XP_FRAME_ATTR_CLOSE_BOX;
     }
     if (hints[0] & 2)
     {
-	/* hints[2] = decoration hints */
+        /* hints[2] = decoration hints */
 
-	if (!(hints[2] & 9))
-	    [self set_class:QWM_WINDOW_CLASS_BORDERLESS];
+        if (!(hints[2] & 9))
+            [self set_class:QWM_WINDOW_CLASS_BORDERLESS];
     }
     if (hints[3] != 0)
     {
-	/* hints[3] = input class */
+        /* hints[3] = input class */
 
-	switch (hints[3])
-	{
-	case 1: case 3:
-	    if (_window_class == QWM_WINDOW_CLASS_DOCUMENT)
-		[self set_class:QWM_WINDOW_CLASS_MODAL_DIALOG];
-	    break;
+        switch (hints[3])
+        {
+            case 1: case 3:
+                if (_window_class == QWM_WINDOW_CLASS_DOCUMENT)
+                    [self set_class:QWM_WINDOW_CLASS_MODAL_DIALOG];
+                break;
 
-	case 2:
-	    if (_window_class == QWM_WINDOW_CLASS_DOCUMENT)
-		[self set_class:QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG];
-	    break;
-	}
+            case 2:
+                if (_window_class == QWM_WINDOW_CLASS_DOCUMENT)
+                    [self set_class:QWM_WINDOW_CLASS_SYSTEM_MODAL_DIALOG];
+                break;
+        }
     }
 }
 
@@ -1569,19 +1569,19 @@ static const char *gravity_type(int gravity) {
     Window transient_for = 0;
 
     if(x_get_property(_id, atoms.wm_transient_for, &data, 1, 1))
-       transient_for = data;
+        transient_for = data;
 
     if(transient_for != _transient_for_id) {
         /* We have a change */
-        
+
         /* Remove this window from the parent's transient list */
         if(_transient_for) {
             _transient_for->_transients = x_list_remove(_transient_for->_transients, self);
         }
-        
+
         /* Set our local state */
         _transient_for_id = transient_for;
-        if(_transient_for_id == 0 || 
+        if(_transient_for_id == 0 ||
            (_transient_for = x_get_window(_transient_for_id)) == NULL) {
 
             /* Not transient */
@@ -1590,11 +1590,11 @@ static const char *gravity_type(int gravity) {
         } else {
             /* _NET_WM_WINDOW_TYPE_DIALOG indicates that this is a dialog window.
              * If _NET_WM_WINDOW_TYPE is not set, then windows with
-             * WM_TRANSIENT_FOR set MUST be taken as this type. 
+             * WM_TRANSIENT_FOR set MUST be taken as this type.
              */
             if(!x_get_property(_id, atoms.net_wm_window_type, &data, 1, 1))
                 [self set_class:QWM_WINDOW_CLASS_DIALOG];
-            
+
             /* Update the parent's transients */
             _transient_for->_transients = x_list_prepend(_transient_for->_transients, self);
         }
@@ -1612,16 +1612,16 @@ static const char *gravity_type(int gravity) {
 - (void) update_group
 {
     if (_wm_hints != NULL && (_wm_hints->flags & WindowGroupHint) != 0)
-	_group_id = _wm_hints->window_group;
+        _group_id = _wm_hints->window_group;
     else if (_transient_for)
-	_group_id = _transient_for->_group_id;
+        _group_id = _transient_for->_group_id;
     else
-	_group_id = _id;
+        _group_id = _id;
 }
 
 - (void) property_changed:(Atom)atom
 {
-    if(atom == atoms.wm_name) { 
+    if(atom == atoms.wm_name) {
         [self update_wm_name];
     } else if(atom == atoms.wm_hints) {
         [self update_wm_hints];
@@ -1707,12 +1707,12 @@ static const char *gravity_type(int gravity) {
 
     for (node = _screen->_window_list; node != NULL; node = node->next)
     {
-	x_window *w = node->data;
+        x_window *w = node->data;
 
-	if (w->_group_id == _group_id)
-	{
-	    group = x_list_prepend (group, w);
-	}
+        if (w->_group_id == _group_id)
+        {
+            group = x_list_prepend (group, w);
+        }
     }
 
     return group;
@@ -1725,7 +1725,7 @@ static const char *gravity_type(int gravity) {
     size_t out;
 
     if (_removed)
-	return;
+        return;
 
     _pending_raise = NO;
 
@@ -1735,40 +1735,40 @@ static const char *gravity_type(int gravity) {
 
     if (order == NULL)
     {
-	/* Simple case, we're the only group member. */
+        /* Simple case, we're the only group member. */
 
-	[_screen raise_windows:&self count:1];
-	return;
+        [_screen raise_windows:&self count:1];
+        return;
     }
 
     /* Harder case. Work down the list until we find a window that's
-       not a dialog for us. That's where we insert ourselves. */
+     not a dialog for us. That's where we insert ourselves. */
 
     ids = alloca (sizeof (x_window *) * (x_list_length (order) + 1));
     out = 0;
 
     for (node = order; node != NULL; node = node->next)
     {
-	x_window *w = node->data;
+        x_window *w = node->data;
 
-	if (![self my_dialog:w])
-	{
-	    /* Found our insertion point. */
-	    ids[out++] = self;
-	    break;
-	}
+        if (![self my_dialog:w])
+        {
+            /* Found our insertion point. */
+            ids[out++] = self;
+            break;
+        }
 
-	ids[out++] = w;
+        ids[out++] = w;
     }
 
     if (node == NULL)
     {
-	ids[out++] = self;
+        ids[out++] = self;
     }
     else
     {
-	for (; node != NULL; node = node->next)
-	    ids[out++] = node->data;
+        for (; node != NULL; node = node->next)
+            ids[out++] = node->data;
     }
 
     [_screen raise_windows:ids count:out];
@@ -1783,46 +1783,46 @@ static const char *gravity_type(int gravity) {
     TRACE ();
 
     if (_removed)
-	return NO;
+        return NO;
 
     if (raise)
     {
-	if (x_get_is_active ())
-	    [self raise];
-	else
-	    _pending_raise = YES;
+        if (x_get_is_active ())
+            [self raise];
+        else
+            _pending_raise = YES;
     }
 
     if (!force && _focused)		/* FIXME: race condition? */
-	return NO;
+        return NO;
 
     changed = NO;
 
     if (_wm_hints == NULL
-	|| (_wm_hints->flags & InputHint) == 0
-	|| _wm_hints->input != 0)
+        || (_wm_hints->flags & InputHint) == 0
+        || _wm_hints->input != 0)
     {
-	XSetInputFocus (x_dpy, !_shaded ? _id : _frame_id,
-			RevertToNone, timestamp);
-	changed = YES;
+        XSetInputFocus (x_dpy, !_shaded ? _id : _frame_id,
+                        RevertToNone, timestamp);
+        changed = YES;
     }
 
     if (!_shaded && _does_wm_take_focus)
     {
-	XEvent e;
+        XEvent e;
 
-	e.xclient.type = ClientMessage;
-	e.xclient.window = _id;
-	e.xclient.message_type = atoms.wm_protocols;
-	e.xclient.format = 32;
-	e.xclient.data.l[0] = atoms.wm_take_focus;
-	e.xclient.data.l[1] = timestamp;
+        e.xclient.type = ClientMessage;
+        e.xclient.window = _id;
+        e.xclient.message_type = atoms.wm_protocols;
+        e.xclient.format = 32;
+        e.xclient.data.l[0] = atoms.wm_take_focus;
+        e.xclient.data.l[1] = timestamp;
 
-	XSendEvent (x_dpy, _id, False, 0, &e);
+        XSendEvent (x_dpy, _id, False, 0, &e);
 
-	changed = YES;
+        changed = YES;
     }
-    
+
     return changed;
 }
 
@@ -1841,15 +1841,15 @@ static const char *gravity_type(int gravity) {
     unsigned int orig_attr = _frame_attr;
 
     if (state)
-	_frame_attr |= XP_FRAME_ATTR_ACTIVE;
+        _frame_attr |= XP_FRAME_ATTR_ACTIVE;
     else
-	_frame_attr &= ~XP_FRAME_ATTR_ACTIVE;
+        _frame_attr &= ~XP_FRAME_ATTR_ACTIVE;
 
     if (_frame_attr != orig_attr)
-	[self decorate];
+        [self decorate];
 
     if (_pending_raise)
-	[self raise];
+        [self raise];
 }
 
 - (void) show
@@ -1880,7 +1880,7 @@ static const char *gravity_type(int gravity) {
     TRACE ();
 
     if (_focused)
-	return;
+        return;
 
     _focused = YES;
     [self install_colormaps];
@@ -1889,7 +1889,7 @@ static const char *gravity_type(int gravity) {
 
     data = _id;
     [_screen set_root_property:"_NET_ACTIVE_WINDOW"
-     type:"WINDOW" length:1 data:&data];
+                          type:"WINDOW" length:1 data:&data];
 }
 
 - (void) x_focus_out
@@ -1899,7 +1899,7 @@ static const char *gravity_type(int gravity) {
     _pending_raise = NO;
 
     if (!_focused)
-	return;
+        return;
 
     _focused = NO;
 
@@ -1911,38 +1911,38 @@ static const char *gravity_type(int gravity) {
     BOOL state;
 
     if (_deleted)
-	return;
+        return;
 
     state = x_get_is_active () && x_get_active_window () == self;
     [self set_is_active:state];
 
     if (state && !_focused)
-	[self focus:CurrentTime raise:NO];
+        [self focus:CurrentTime raise:NO];
 
     if (_pending_raise)
-	[self raise];
+        [self raise];
 
     XFlush (x_dpy);
 }
 
 - (void) dealloc {
     TRACE ();
-    
+
     if(_wm_hints != NULL)
         XFree (_wm_hints);
-    
+
     if(_title != NULL)
         [_title release];
-    
+
     if(_n_colormap_windows > 0)
         XFree (_colormap_windows);
-    
+
     if(_shortcut_index != 0)
         x_release_window_shortcut (_shortcut_index);
-    
+
     if(_transients)
         x_list_free(_transients);
-        
+
     [super dealloc];
 }
 
@@ -1956,15 +1956,15 @@ static const char *gravity_type(int gravity) {
     attr = frame_hit_test(or, ir, [self get_xp_frame_class], p);
 
     /* Only return buttons that we actually have */
-     attr &= _frame_attr;
-    
+    attr &= _frame_attr;
+
     if([self has_modal_descendents])
         attr &= ~XP_FRAME_ATTR_CLOSE_BOX;
     if (_tracking_id != 0 && X11RectContainsPoint (_tracking_rect, p))
         attr |= XP_FRAME_ATTR_PRELIGHT;
     if (_growbox_id != 0 && X11RectContainsPoint (_growbox_rect, p))
         attr |= XP_FRAME_ATTR_GROW_BOX;
-    
+
     return attr;
 }
 
@@ -1974,15 +1974,15 @@ static const char *gravity_type(int gravity) {
 
     if (unmapped && !_client_unmapped)
     {
-	BEFORE_LOCAL_MAP;
-	XUnmapWindow (x_dpy, _id);
-	AFTER_LOCAL_MAP;
+        BEFORE_LOCAL_MAP;
+        XUnmapWindow (x_dpy, _id);
+        AFTER_LOCAL_MAP;
     }
     else if (!unmapped && _client_unmapped)
     {
-	BEFORE_LOCAL_MAP;
-	XMapWindow (x_dpy, _id);
-	AFTER_LOCAL_MAP;
+        BEFORE_LOCAL_MAP;
+        XMapWindow (x_dpy, _id);
+        AFTER_LOCAL_MAP;
     }
 
     _client_unmapped = unmapped;
@@ -1994,20 +1994,20 @@ static const char *gravity_type(int gravity) {
 
     if (_does_wm_delete_window)
     {
-	XEvent e;
+        XEvent e;
 
-	e.xclient.type = ClientMessage;
-	e.xclient.window = _id;
-	e.xclient.message_type = atoms.wm_protocols;
-	e.xclient.format = 32;
-	e.xclient.data.l[0] = atoms.wm_delete_window;
-	e.xclient.data.l[1] = timestamp;
+        e.xclient.type = ClientMessage;
+        e.xclient.window = _id;
+        e.xclient.message_type = atoms.wm_protocols;
+        e.xclient.format = 32;
+        e.xclient.data.l[0] = atoms.wm_delete_window;
+        e.xclient.data.l[1] = timestamp;
 
-	XSendEvent (x_dpy, _id, False, 0, &e);
+        XSendEvent (x_dpy, _id, False, 0, &e);
     }
     else
     {
-	XKillClient (x_dpy, _id);
+        XKillClient (x_dpy, _id);
     }
 }
 
@@ -2017,13 +2017,13 @@ static const char *gravity_type(int gravity) {
 
     if (state)
     {
-	XUnmapWindow (x_dpy, _frame_id);
-	[self set_wm_state:IconicState];
+        XUnmapWindow (x_dpy, _frame_id);
+        [self set_wm_state:IconicState];
     }
     else
     {
-	_minimized = NO;
-	_minimized_osx_id = kOSXNullWindowID;
+        _minimized = NO;
+        _minimized_osx_id = kOSXNullWindowID;
     }
 
     [self map_unmap_client];
@@ -2039,22 +2039,22 @@ static const char *gravity_type(int gravity) {
     TRACE ();
 
     if (_minimized || _animating)
-	return;
+        return;
 
     wid = [self get_osx_id];
     if (wid == kOSXNullWindowID)
-	return;
+        return;
 
     err = DockMinimizeItemWithTitleAsync (wid, (CFStringRef) _title);
     if (err == noErr)
     {
-	_animating = YES;
-	_minimized = YES;
-	_minimized_osx_id = wid;
+        _animating = YES;
+        _minimized = YES;
+        _minimized_osx_id = wid;
     }
     else
     {
-	fprintf (stderr, "couldn't minimize window: %d\n", (int) err);
+        fprintf (stderr, "couldn't minimize window: %d\n", (int) err);
     }
 }
 
@@ -2070,25 +2070,25 @@ static const char *gravity_type(int gravity) {
 {
     OSStatus err = noErr;
     long data = 1;
-    
+
     TRACE ();
-    
+
     if (!_minimized || (anim && _animating))
         return;
-    
+
     _minimized = NO;
-    
+
     if (_minimized_osx_id == kOSXNullWindowID)
         return;
-    
+
     [self map_unmap_client];
-    
+
     /* Need to map the frame here, so that it has content when genieing.
      But we don't want the physical window ordered in yet, since that
      will cause flicker if it beats the Dock to its first animation
      state. So we have a hack in the X server to check for this
      property when restacking windows. */
-    
+
     XChangeProperty (x_dpy, _frame_id, atoms.apple_no_order_in,
                      atoms.apple_no_order_in, 32,
                      PropModeReplace, (unsigned char *) &data, 1);
@@ -2106,14 +2106,14 @@ static const char *gravity_type(int gravity) {
         _minimized_osx_id = kOSXNullWindowID;
         [self set_wm_state:NormalState];
         [self send_configure];
-        
+
         if (!anim)
             [self uncollapse_finished:YES];
     } else {
         fprintf (stderr, "couldn't restore window: %d\n", (int) err);
-        
+
         _minimized = YES;
-        
+
         [self map_unmap_client];
         XUnmapWindow (x_dpy, _frame_id);
     }
@@ -2133,12 +2133,12 @@ static const char *gravity_type(int gravity) {
 - (void) error_shutdown
 {
     /* Called when we're terminating abnormally. Can't make any
-       X protocol requests. */
+     X protocol requests. */
 
     if (_minimized_osx_id != kOSXNullWindowID)
     {
-	DockRemoveItem (_minimized_osx_id);
-	_minimized_osx_id = kOSXNullWindowID;
+        DockRemoveItem (_minimized_osx_id);
+        _minimized_osx_id = kOSXNullWindowID;
     }
 }
 
@@ -2147,7 +2147,7 @@ static const char *gravity_type(int gravity) {
     X11Rect r;
 
     if (_shaded)
-	return;
+        return;
 
     TRACE ();
 
@@ -2161,7 +2161,7 @@ static const char *gravity_type(int gravity) {
     [self map_unmap_client];
 
     if (_focused)
-	[self focus:timestamp raise:YES force:YES];
+        [self focus:timestamp raise:YES force:YES];
 
     [self update_net_wm_state_property];
 }
@@ -2171,7 +2171,7 @@ static const char *gravity_type(int gravity) {
     X11Rect r;
 
     if (!_shaded)
-	return;
+        return;
 
     TRACE ();
 
@@ -2185,7 +2185,7 @@ static const char *gravity_type(int gravity) {
     [self resize_frame:r force:YES];
 
     if (_focused)
-	[self focus:timestamp raise:YES force:NO];
+        [self focus:timestamp raise:YES force:NO];
 
     [self update_net_wm_state_property];
 }
@@ -2193,9 +2193,9 @@ static const char *gravity_type(int gravity) {
 - (void) do_toggle_shaded:(Time)timestamp
 {
     if (!_shaded)
-	[self do_shade:timestamp];
+        [self do_shade:timestamp];
     else
-	[self do_unshade:timestamp];
+        [self do_unshade:timestamp];
 }
 
 - (void) do_zoom {
@@ -2289,7 +2289,7 @@ static const char *gravity_type(int gravity) {
 - (void) do_hide
 {
     if (_hidden)
-	return;
+        return;
 
     TRACE ();
 
@@ -2297,7 +2297,7 @@ static const char *gravity_type(int gravity) {
 
     if (_reparented)
     {
-	XUnmapWindow (x_dpy, _frame_id);
+        XUnmapWindow (x_dpy, _frame_id);
     }
 
     [self map_unmap_client];
@@ -2306,7 +2306,7 @@ static const char *gravity_type(int gravity) {
 - (void) do_unhide
 {
     if (!_hidden)
-	return;
+        return;
 
     TRACE ();
 
@@ -2316,8 +2316,8 @@ static const char *gravity_type(int gravity) {
 
     if (_reparented && !_minimized)
     {
-	XMapWindow (x_dpy, _frame_id);
-	[self decorate];
+        XMapWindow (x_dpy, _frame_id);
+        [self decorate];
     }
 }
 
@@ -2328,13 +2328,13 @@ constrain_1 (int x, int base, int minimum, int maximum, int inc)
 
     if (inc > 1 && (x - bottom) % inc != 0)
     {
-	x = bottom + (((x - bottom) / inc)) * inc;
+        x = bottom + (((x - bottom) / inc)) * inc;
     }
 
     if (x < minimum)
-	x = minimum;
+        x = minimum;
     else if (maximum > 0 && x > maximum)
-	x = maximum;
+        x = maximum;
 
     return x;
 }
@@ -2345,81 +2345,81 @@ get_logical_1 (int x, int base, int minimum, int inc)
     int bottom = base ? base : minimum ? minimum : 1;
 
     if (inc <= 1)
-	return x - bottom;
+        return x - bottom;
     else
-	return (x - bottom) / inc;
+        return (x - bottom) / inc;
 }
 
 static void
 decode_size_hints (XSizeHints *hints, int base[2], int min[2],
-		   int max[2], int inc[2])
+                   int max[2], int inc[2])
 {
     if (hints->flags & PMinSize)
     {
-	min[0] = hints->min_width;
-	min[1] = hints->min_height;
+        min[0] = hints->min_width;
+        min[1] = hints->min_height;
     }
     else
-	min[0] = min[1] = 0;
+        min[0] = min[1] = 0;
 
     if (hints->flags & PMaxSize)
     {
-	max[0] = hints->max_width;
-	max[1] = hints->max_height;
+        max[0] = hints->max_width;
+        max[1] = hints->max_height;
     }
     else
-	max[0] = max[1] = 0;
+        max[0] = max[1] = 0;
 
     if (hints->flags & PBaseSize)
     {
-	base[0] = hints->base_width;
-	base[1] = hints->base_height;
+        base[0] = hints->base_width;
+        base[1] = hints->base_height;
     }
     else
-	base[0] = base[1] = 0;
+        base[0] = base[1] = 0;
 
     if (hints->flags & PResizeInc)
     {
-	inc[0] = hints->width_inc;
-	inc[1] = hints->height_inc;
+        inc[0] = hints->width_inc;
+        inc[1] = hints->height_inc;
     }
     else
-	inc[0] = inc[1] = 0;
+        inc[0] = inc[1] = 0;
 }
 
-- (X11Size) validate_window_size:(X11Rect)r\
-    from_user:(BOOL)uflag constrain:(BOOL)cflag
+- (X11Size) validate_window_size:(X11Rect)r
+                       from_user:(BOOL)uflag constrain:(BOOL)cflag
 {
     int base[2], min[2], max[2], inc[2];
-    
+
     decode_size_hints (&_size_hints, base, min, max, inc);
 
     if (!uflag)
     {
         X11Size s;
-	/* Constrain maximum size to head dimensions. */
+        /* Constrain maximum size to head dimensions. */
 
-	if (limit_window_size)
-	    s = X11RectSize([_screen zoomed_rect:X11RectOrigin(r)]);
-	else
-	    s = X11SizeMake(_screen->_width, _screen->_height);
+        if (limit_window_size)
+            s = X11RectSize([_screen zoomed_rect:X11RectOrigin(r)]);
+        else
+            s = X11SizeMake(_screen->_width, _screen->_height);
 
         // _frame_border_width
-	max[0] = (max[0] > 0 ? MIN (max[0], s.width)
-		  : s.width);
-	max[1] = (max[1] > 0 ? MIN (max[1], s.height)
-		  : s.height - _frame_title_height);
+        max[0] = (max[0] > 0 ? MIN (max[0], s.width)
+                  : s.width);
+        max[1] = (max[1] > 0 ? MIN (max[1], s.height)
+                  : s.height - _frame_title_height);
     }
 
     if (!cflag)
     {
-	inc[0] = inc[1] = 1;
+        inc[0] = inc[1] = 1;
     }
 
     r.width = constrain_1 (r.width, base[0],
-				min[0], max[0], inc[0]);
+                           min[0], max[0], inc[0]);
     r.height = constrain_1 (r.height, base[1],
-				 min[1], max[1], inc[1]);
+                            min[1], max[1], inc[1]);
 
     r.width = MAX (72, r.width);
     r.height = MAX (16, r.height);
@@ -2441,7 +2441,7 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
 }
 
 - (X11Rect) validate_frame_rect:(X11Rect)r
-    from_user:(BOOL)uflag constrain:(BOOL)cflag
+                      from_user:(BOOL)uflag constrain:(BOOL)cflag
 {
     X11Size s;
     r.height -= _frame_title_height;
@@ -2468,11 +2468,11 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
     int w, h;
 
     if ((_size_hints.flags & PResizeInc) == 0)
-	return nil;
+        return nil;
 
     r = _pending_frame_change ? _pending_frame : _current_frame;
     r.height -= _frame_title_height;
-    
+
     decode_size_hints (&_size_hints, base, min, max, inc);
 
     w = get_logical_1 (r.width, base[0], min[0], inc[0]);
@@ -2485,8 +2485,8 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
 {
     if (!_resizing_title)
     {
-	_resizing_title = YES;
-	[self decorate];
+        _resizing_title = YES;
+        [self decorate];
     }
 }
 
@@ -2494,24 +2494,24 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
 {
     if (_resizing_title)
     {
-	_resizing_title = NO;
-	[self decorate];
+        _resizing_title = NO;
+        [self decorate];
     }
 }
 
 - (void) update_colormaps
 {
     if (_n_colormap_windows > 0)
-	XFree (_colormap_windows);
+        XFree (_colormap_windows);
 
     if (!XGetWMColormapWindows (x_dpy, _id, &_colormap_windows,
-				&_n_colormap_windows))
+                                &_n_colormap_windows))
     {
-	_n_colormap_windows = 0;
+        _n_colormap_windows = 0;
     }
 
     if (_focused)
-	[self install_colormaps];
+        [self install_colormaps];
 }
 
 - (void) install_colormaps
@@ -2522,29 +2522,29 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
 
     if (_n_colormap_windows > 0)
     {
-	for (i = _n_colormap_windows - 1; i >= 0; i--)
-	{
-	    XGetWindowAttributes (x_dpy, _colormap_windows[i], &attr);
-	    XInstallColormap (x_dpy, attr.colormap);
+        for (i = _n_colormap_windows - 1; i >= 0; i--)
+        {
+            XGetWindowAttributes (x_dpy, _colormap_windows[i], &attr);
+            XInstallColormap (x_dpy, attr.colormap);
 
-	    if (_colormap_windows[i] == _id)
-		done_this_one = YES;
-	}
+            if (_colormap_windows[i] == _id)
+                done_this_one = YES;
+        }
     }
 
     if (!done_this_one)
     {
-	XGetWindowAttributes (x_dpy, _id, &attr);
-	XInstallColormap (x_dpy, attr.colormap);
+        XGetWindowAttributes (x_dpy, _id, &attr);
+        XInstallColormap (x_dpy, attr.colormap);
     }
 }
 
 - (NSString *)description
 {
     if (_title != nil)
-	return [NSString stringWithFormat:@"{x-window %@}", _title];
+        return [NSString stringWithFormat:@"{x-window %@}", _title];
     else
-	return [NSString stringWithFormat:@"{x-window 0x%x}", _id];
+        return [NSString stringWithFormat:@"{x-window 0x%x}", _id];
 }
 
 @end

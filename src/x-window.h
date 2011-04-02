@@ -1,6 +1,6 @@
 /* x-window.h
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -65,9 +65,9 @@ typedef enum {
     int _frame_height;
 
     /* "pending" is new frame bounds we've dispatched to X server, but
-       not yet seen come through in a configure-notify. "queued" is a
-       new set of bounds we want to set, but won't until we've seen
-       the configure-notify from the "pending" change. */
+     not yet seen come through in a configure-notify. "queued" is a
+     new set of bounds we want to set, but won't until we've seen
+     the configure-notify from the "pending" change. */
 
     X11Rect _current_frame;
     X11Rect _pending_frame;
@@ -89,7 +89,7 @@ typedef enum {
      * need to go through a transformation based on the window's gravity setting.
      */
     XWindowAttributes _xattr;
-    
+
     XWMHints *_wm_hints;
     XSizeHints _size_hints;
     long _size_hints_supplied;
@@ -138,7 +138,7 @@ typedef enum {
 @private
     OSXWindowID _osx_id;
     OSXWindowID _minimized_osx_id;
-    
+
     /* Transience tree */
     Window _transient_for_id;
     x_window *_transient_for;

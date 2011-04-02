@@ -1,6 +1,6 @@
 /* x-screen.h
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -66,7 +66,7 @@
 }
 
 - (void) set_root_property:(const char *)name type:(const char *)type
-         length:(int)length data:(const long *)data;
+                    length:(int)length data:(const long *)data;
 - init_with_screen_id:(int)id;
 - (void) update_geometry;
 - (void) focus_topmost:(Time)timestamp;

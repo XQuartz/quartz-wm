@@ -1,6 +1,6 @@
 /* main.m
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -88,13 +88,13 @@ x_grab_server (Bool sync)
 {
     if (x_grab_count++ == 0)
     {
-	XGrabServer (x_dpy);
+        XGrabServer (x_dpy);
     }
 
     if (sync && !x_grab_synced)
     {
-	XSync (x_dpy, False);
-	x_grab_synced = True;
+        XSync (x_dpy, False);
+        x_grab_synced = True;
     }
 }
 
@@ -103,9 +103,9 @@ x_ungrab_server (void)
 {
     if (--x_grab_count == 0)
     {
-	XUngrabServer (x_dpy);
-	XFlush (x_dpy);
-	x_grab_synced = False;
+        XUngrabServer (x_dpy);
+        XFlush (x_dpy);
+        x_grab_synced = False;
     }
 }
 
@@ -126,17 +126,17 @@ x_error_handler (Display *dpy, XErrorEvent *e)
 
     DB ("X Error: %s\n", buf);
     DB ("  code:%d.%d resource:%x\n",
-	 e->request_code, e->minor_code, e->resourceid);
+        e->request_code, e->minor_code, e->resourceid);
 
     if (e->resourceid == 0)
-	return 0;
+        return 0;
 
     if (e->error_code == BadWindow || e->error_code == BadDrawable)
     {
-	w = x_get_window (e->resourceid);
+        w = x_get_window (e->resourceid);
 
-	if (w != nil && ! w->_removed)
-	    [w->_screen remove_window:w safe:NO];
+        if (w != nil && ! w->_removed)
+            [w->_screen remove_window:w safe:NO];
     }
 
     return 0;
@@ -156,26 +156,26 @@ x_update_meta_modifier (void)
     XDisplayKeycodes (x_dpy, &min_code, &max_code);
 
     syms = XGetKeyboardMapping (x_dpy, min_code, max_code - min_code + 1,
-				&syms_per_code);
+                                &syms_per_code);
     mods = XGetModifierMapping (x_dpy);
 
     for (row = 3; row < 8; row++)
     {
-	for (col = 0; col < mods->max_keypermod; col++)
-	{
-	    code = mods->modifiermap[(row * mods->max_keypermod) + col];
-	    if(code == 0)
-		continue;
-	    for (code_col = 0; code_col < syms_per_code; code_col++)
-	    {
-		sym = syms[((code - min_code) * syms_per_code) + code_col];
-		if (sym == XK_Meta_L || sym == XK_Meta_R)
-		{
-		    x_meta_mod = 1 << row;
-		    goto done;
-		}
-	    }
-	}
+        for (col = 0; col < mods->max_keypermod; col++)
+        {
+            code = mods->modifiermap[(row * mods->max_keypermod) + col];
+            if(code == 0)
+                continue;
+            for (code_col = 0; code_col < syms_per_code; code_col++)
+            {
+                sym = syms[((code - min_code) * syms_per_code) + code_col];
+                if (sym == XK_Meta_L || sym == XK_Meta_R)
+                {
+                    x_meta_mod = 1 << row;
+                    goto done;
+                }
+            }
+        }
     }
 
 done:
@@ -190,16 +190,16 @@ x_update_keymap (void)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
-	[s foreach_window:@selector(ungrab_events)];
+        x_screen *s = node->data;
+        [s foreach_window:@selector(ungrab_events)];
     }
 
     x_update_meta_modifier ();
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
-	[s foreach_window:@selector(grab_events)];
+        x_screen *s = node->data;
+        [s foreach_window:@selector(grab_events)];
     }
 }
 
@@ -226,8 +226,8 @@ x_init (void)
     x_dpy = XOpenDisplay (NULL);
     if (x_dpy == NULL)
     {
-	fprintf (stderr, "quartz-wm: can't open default display\n");
-	exit(EXIT_FAILURE);
+        fprintf (stderr, "quartz-wm: can't open default display\n");
+        exit(EXIT_FAILURE);
     }
 
     XSetErrorHandler (x_error_handler);
@@ -295,26 +295,26 @@ x_init (void)
     atoms.wm_transient_for = XInternAtom (x_dpy, "WM_TRANSIENT_FOR", False);
 
     if (!XShapeQueryExtension (x_dpy, &x_shape_event_base,
-			       &x_shape_error_base))
+                               &x_shape_error_base))
     {
-	fprintf (stderr, "quartz-wm: can't open SHAPE server extension\n");
-	exit(EXIT_FAILURE);
+        fprintf (stderr, "quartz-wm: can't open SHAPE server extension\n");
+        exit(EXIT_FAILURE);
     }
 
     if (!XAppleWMQueryExtension (x_dpy, &x_apple_wm_event_base,
-				 &x_apple_wm_error_base))
+                                 &x_apple_wm_error_base))
     {
-	fprintf (stderr, "quartz-wm: can't open AppleWM server extension\n");
-	exit(EXIT_FAILURE);
+        fprintf (stderr, "quartz-wm: can't open AppleWM server extension\n");
+        exit(EXIT_FAILURE);
     }
 
     XineramaQueryExtension (x_dpy, &x_xinerama_event_base,
-			    &x_xinerama_error_base);
+                            &x_xinerama_error_base);
 
     x_update_meta_modifier ();
 
     XAppleWMQueryVersion(x_dpy, &AppleWMMajorVersion, &AppleWMMinorVersion, &AppleWMPatchVersion);
-    
+
     if(!_force_proxy && (AppleWMMajorVersion > 1 || (AppleWMMajorVersion == 1 && AppleWMMinorVersion >= 1))) {
         /* Server handles PB proxy */
         _proxy_pb = NO;
@@ -338,7 +338,7 @@ x_init (void)
         applewm_mask |= AppleWMPasteboardNotifyMask;
     if(!_only_proxy)
         applewm_mask |= AppleWMControllerNotifyMask;
-        
+
     XAppleWMSelectInput (x_dpy, applewm_mask);
     if (!_only_proxy) {
         XSync (x_dpy, False);
@@ -374,21 +374,21 @@ x_init (void)
 
 static void x_shutdown (void) {
     x_list *node;
-    
+
     [_selection_object release];
     _selection_object = nil;
-    
+
     for (node = screen_list; node != NULL; node = node->next) {
         x_screen *s = node->data;
         [s unadopt_windows];
     }
-    
+
     /* Leave focus in a usable state. */
     XSetInputFocus (x_dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
-    
+
     /* Reenable can-quit dialog */
     XAppleWMSetCanQuit (x_dpy, False);
-    
+
     XCloseDisplay (x_dpy);
     x_dpy = NULL;
     exit(EXIT_SUCCESS);
@@ -418,7 +418,7 @@ x_current_timestamp (void)
     return CurrentTime;
 }
 
-
+
 /* Window menu management */
 
 static x_list *window_menu;
@@ -430,14 +430,14 @@ x_update_window_menu_focused (void)
 
     n = x_list_length (window_menu);
     if (_is_active)
-	m = x_list_length (x_list_find (window_menu, _active_window));
+        m = x_list_length (x_list_find (window_menu, _active_window));
     else
-	m = 0;
+        m = 0;
 
     if (m > 0)
-	XAppleWMSetWindowMenuCheck (x_dpy, n - m);
+        XAppleWMSetWindowMenuCheck (x_dpy, n - m);
     else
-	XAppleWMSetWindowMenuCheck (x_dpy, -1);
+        XAppleWMSetWindowMenuCheck (x_dpy, -1);
 }
 
 static void
@@ -451,22 +451,22 @@ x_update_window_menu (void)
     nitems = x_list_length (window_menu);
     if (nitems > 0)
     {
-	items = alloca (sizeof (char *) * nitems);
-	shortcuts = alloca (sizeof (char) * nitems);
+        items = alloca (sizeof (char *) * nitems);
+        shortcuts = alloca (sizeof (char) * nitems);
 
-	for (i = 0, node = window_menu; node != NULL; node = node->next)
-	{
-	    x_window *w = node->data;
+        for (i = 0, node = window_menu; node != NULL; node = node->next)
+        {
+            x_window *w = node->data;
 
-	    if (w->_title != nil)
-	    {
-		items[i] = [w->_title UTF8String];
-		shortcuts[i] = w->_shortcut_index;
-		i++;
-	    }
-	    else
-		nitems--;
-	}
+            if (w->_title != nil)
+            {
+                items[i] = [w->_title UTF8String];
+                shortcuts[i] = w->_shortcut_index;
+                i++;
+            }
+            else
+                nitems--;
+        }
     }
 
     XAppleWMSetWindowMenuWithShortcuts (x_dpy, nitems, items, shortcuts);
@@ -479,7 +479,7 @@ x_update_window_in_menu (id w)
 {
     if (x_list_find (window_menu, w))
     {
-	x_update_window_menu ();
+        x_update_window_menu ();
     }
 }
 
@@ -488,7 +488,7 @@ x_add_window_to_menu (id w)
 {
     if (!x_list_find (window_menu, w))
     {
-	window_menu = x_list_append (window_menu, [w retain]);
+        window_menu = x_list_append (window_menu, [w retain]);
     }
 
     x_update_window_menu ();
@@ -499,9 +499,9 @@ x_remove_window_from_menu (id w)
 {
     if (x_list_find (window_menu, w))
     {
-	window_menu = x_list_remove (window_menu, w);
-	[w release];
-	x_update_window_menu ();
+        window_menu = x_list_remove (window_menu, w);
+        [w release];
+        x_update_window_menu ();
     }
 }
 
@@ -514,12 +514,12 @@ x_activate_window_in_menu (int n, Time timestamp)
     node = x_list_nth (window_menu, n);
     if (node != nil)
     {
-	w = node->data;
-	[w activate:timestamp];
+        w = node->data;
+        [w activate:timestamp];
     }
 }
 
-
+
 /* Finding things */
 
 id
@@ -529,10 +529,10 @@ x_get_screen (Screen *xs)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
+        x_screen *s = node->data;
 
-	if (s->_screen == xs)
-	    return s;
+        if (s->_screen == xs)
+            return s;
     }
 
     return nil;
@@ -545,10 +545,10 @@ x_get_screen_with_root (Window id)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
+        x_screen *s = node->data;
 
-	if (s->_root == id)
-	    return s;
+        if (s->_root == id)
+            return s;
     }
 
     return nil;
@@ -561,12 +561,12 @@ x_get_window (Window id)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
-	x_window *w;
+        x_screen *s = node->data;
+        x_window *w;
 
-	w = [s get_window:id];
-	if (w != nil)
-	    return w;
+        w = [s get_window:id];
+        if (w != nil)
+            return w;
     }
 
     return nil;
@@ -579,12 +579,12 @@ x_get_window_by_osx_id (OSXWindowID id)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
-	x_window *w;
+        x_screen *s = node->data;
+        x_window *w;
 
-	w = [s get_window_by_osx_id:id];
-	if (w != nil)
-	    return w;
+        w = [s get_window_by_osx_id:id];
+        if (w != nil)
+            return w;
     }
 
     return nil;
@@ -595,8 +595,8 @@ x_get_active_window (void)
 {
     if (_active_window != nil && _active_window->_deleted)
     {
-	[_active_window release];
-	_active_window = nil;
+        [_active_window release];
+        _active_window = nil;
     }
 
     return _active_window;
@@ -606,31 +606,31 @@ void
 x_set_active_window (id w)
 {
     if (_active_window == w)
-	return;
+        return;
 
     /* When X11 becomes inactive, we unfocus the active window.. but we
-       want to remember which window was focused for later reactivation */
+     want to remember which window was focused for later reactivation */
 
     if (!_is_active && w == nil)
-	return;
+        return;
 
     if (_active_window != nil)
     {
-	if (_is_active)
-	    [_active_window set_is_active:NO];
+        if (_is_active)
+            [_active_window set_is_active:NO];
 
-	[_active_window release];
-	_active_window = nil;
+        [_active_window release];
+        _active_window = nil;
     }
 
     if (w != nil)
     {
-	_active_window = [w retain];
+        _active_window = [w retain];
 
-	if (_is_active)
-	    [_active_window set_is_active:YES];
+        if (_is_active)
+            [_active_window set_is_active:YES];
 
-	x_update_window_menu_focused ();
+        x_update_window_menu_focused ();
     }
 }
 
@@ -646,27 +646,27 @@ x_set_is_active (BOOL state)
     x_window *active;
 
     if (_is_active == state)
-	return;
+        return;
 
     active = x_get_active_window ();
     if (active != nil)
     {
-	if (!state)
-	{
-	    [active set_is_active:state];
-	    XSetInputFocus (x_dpy, None, RevertToNone, CurrentTime);
-	}
-	else
-	{
-	    /* Don't redraw the window immediately, the activation
-	       may have been caused by clicking on a non-focused
-	       window, in which case we don't want the previously
-	       focused window to be drawn active then inactive. */
+        if (!state)
+        {
+            [active set_is_active:state];
+            XSetInputFocus (x_dpy, None, RevertToNone, CurrentTime);
+        }
+        else
+        {
+            /* Don't redraw the window immediately, the activation
+             may have been caused by clicking on a non-focused
+             window, in which case we don't want the previously
+             focused window to be drawn active then inactive. */
 
-	    [NSTimer scheduledTimerWithTimeInterval:0.1
-	     target:active selector:@selector (update_state:)
-	     userInfo:nil repeats:NO];
-	}
+            [NSTimer scheduledTimerWithTimeInterval:0.1
+                                             target:active selector:@selector (update_state:)
+                                           userInfo:nil repeats:NO];
+        }
     }
 
     _is_active = state;
@@ -681,7 +681,7 @@ x_bring_one_to_front (Time timestamp)
 
     if (w != nil)
     {
-	[w activate:timestamp];
+        [w activate:timestamp];
     }
 }
 
@@ -692,9 +692,9 @@ x_bring_all_to_front (Time timestamp)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
+        x_screen *s = node->data;
 
-	[s raise_all];
+        [s raise_all];
     }
 }
 
@@ -705,9 +705,9 @@ x_hide_all (Time timestamp)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
+        x_screen *s = node->data;
 
-	[s hide_all];
+        [s hide_all];
     }
 }
 
@@ -718,10 +718,10 @@ x_show_all (Time timestamp, BOOL minimized)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
+        x_screen *s = node->data;
 
-	[s show_all:minimized];
-	[s focus_topmost:timestamp];
+        [s show_all:minimized];
+        [s focus_topmost:timestamp];
     }
 }
 
@@ -770,7 +770,7 @@ static void start_auto_quit(void) {
     if(auto_quit_timer) {
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), auto_quit_timer, kCFRunLoopCommonModes);
     } else {
-	fprintf (stderr, "quartz-wm: couldn't create a shutdown timer, quitting now.\n");
+        fprintf (stderr, "quartz-wm: couldn't create a shutdown timer, quitting now.\n");
         x_shutdown();
     }
 }
@@ -808,14 +808,14 @@ x_check_windows (void)
 
     for (node = screen_list; node != NULL; node = node->next)
     {
-	x_screen *s = node->data;
+        x_screen *s = node->data;
 
-	[s check_window_lists];
+        [s check_window_lists];
     }
 }
 #endif
 
-
+
 /* Window shortcut management */
 
 static unsigned int _shortcut_map;
@@ -827,11 +827,11 @@ x_allocate_window_shortcut (void)
 
     for (i = 1; i < 10; i++)
     {
-	if (!(_shortcut_map & (1 << i)))
-	{
-	    _shortcut_map |= (1 << i);
-	    return i;
-	}
+        if (!(_shortcut_map & (1 << i)))
+        {
+            _shortcut_map |= (1 << i);
+            return i;
+        }
     }
 
     return 0;
@@ -842,8 +842,8 @@ x_release_window_shortcut (int x)
 {
     _shortcut_map = _shortcut_map & ~(1 << x);
 }
-
-/* Preferences */
+
+/* Preferences */
 
 BOOL prefs_reload = NO;
 
@@ -905,10 +905,10 @@ static void prefs_reload_cb(CFRunLoopObserverRef observer,
 static void prefs_reload_init(void) {
     CFRunLoopObserverContext context = {0};
     CFRunLoopObserverRef ref;
-    
+
     ref = CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopBeforeWaiting,
                                   true, 0, prefs_reload_cb, &context);
-        
+
     CFRunLoopAddObserver(CFRunLoopGetCurrent(), ref, kCFRunLoopDefaultMode);
 }
 
@@ -928,12 +928,12 @@ int main (int argc, const char *argv[]) {
     NSAutoreleasePool *pool;
     int i;
     const char *s;
-    
+
     pool = [[NSAutoreleasePool alloc] init];
-    
+
     if((s = getenv("X11_PREFS_DOMAIN")))
         app_prefs_domain = s;
-    
+
     for (i = 1; i < argc; i++)
     {
         if (strcmp (argv[i], "--version") == 0) {
@@ -964,11 +964,11 @@ int main (int argc, const char *argv[]) {
             return 0;
         } else {
             fprintf(stderr, "usage: quartz-wm OPTIONS...\n"
-                   "Try 'quartz-wm --help' for more information.\n");
+                    "Try 'quartz-wm --help' for more information.\n");
             return 1;
         }
     }
-    
+
     app_prefs_domain_cfstr = CFStringCreateWithCString(NULL, app_prefs_domain, kCFStringEncodingUTF8);
 
     prefs_read();
@@ -977,16 +977,16 @@ int main (int argc, const char *argv[]) {
         fprintf(stderr, "quartz-wm: You can't do both --only-proxy and --no-pasteboard at the same time.");
         return 1;
     }
-    
+
     prefs_reload_init();
     DockInit(_only_proxy);
     x_init ();
-    
+
     signal (SIGINT, signal_handler);
     signal (SIGTERM, signal_handler);
     signal (SIGHUP, signal_handler);
     signal (SIGPIPE, SIG_IGN);
-    
+
     while (1) {
         NS_DURING
         CFRunLoopRun ();
@@ -995,11 +995,11 @@ int main (int argc, const char *argv[]) {
                        [localException name], [localException reason]];
         fprintf(stderr, "quartz-wm: caught exception: %s\n", [s UTF8String]);
         NS_ENDHANDLER
-    }		
-    
+    }
+
     return 0;
 }
-            
+
 void
 debug_printf (const char *fmt, ...)
 {
@@ -1007,18 +1007,18 @@ debug_printf (const char *fmt, ...)
 
     if (spew == -1)
     {
-	char *x = getenv ("DEBUG");
-	spew = (x != NULL && atoi (x) != 0);
+        char *x = getenv ("DEBUG");
+        spew = (x != NULL && atoi (x) != 0);
     }
 
     if (spew)
     {
-	va_list args;
+        va_list args;
 
-	va_start(args, fmt);
+        va_start(args, fmt);
 
-	vfprintf (stderr, fmt, args);
+        vfprintf (stderr, fmt, args);
 
-	va_end(args);
+        va_end(args);
     }
 }

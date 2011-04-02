@@ -1,6 +1,6 @@
 /* utils.m
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -33,7 +33,7 @@
 
 int
 x_get_property (Window id, Atom atom, long *dest,
-		unsigned int dest_size, unsigned int min_items)
+                unsigned int dest_size, unsigned int min_items)
 {
     Atom type;
     int format;
@@ -43,30 +43,30 @@ x_get_property (Window id, Atom atom, long *dest,
     int ret = 0;
 
     do {
-	long long_length = 32;
-	u_long bytes_after;
-	while (1)
-	{
-	    if (data != NULL)
-		XFree (data);
+        long long_length = 32;
+        u_long bytes_after;
+        while (1)
+        {
+            if (data != NULL)
+                XFree (data);
 
-	    if (XGetWindowProperty (x_dpy, id, atom, 0, long_length, False,
-				    AnyPropertyType, &type, &format,
-				    &nitems, &bytes_after, &data) != Success)
-		return 0;
-	    if (type == None)
-		return 0;
-	    if (bytes_after == 0)
-		break;
-	    long_length += (bytes_after / sizeof(unsigned long)) + 1;
-	}
+            if (XGetWindowProperty (x_dpy, id, atom, 0, long_length, False,
+                                    AnyPropertyType, &type, &format,
+                                    &nitems, &bytes_after, &data) != Success)
+                return 0;
+            if (type == None)
+                return 0;
+            if (bytes_after == 0)
+                break;
+            long_length += (bytes_after / sizeof(unsigned long)) + 1;
+        }
     } while (0);
 
     if (format == 32 && nitems >= min_items)
     {
-	for (i = 0; i < MIN (nitems, dest_size); i++)
-	    dest[i] = ((unsigned long *) data)[i];
-	ret = i;
+        for (i = 0; i < MIN (nitems, dest_size); i++)
+            dest[i] = ((unsigned long *) data)[i];
+        ret = i;
     }
 
     XFree (data);
@@ -84,23 +84,23 @@ x_get_string_property (Window id, Atom atom)
     NSString *ret = nil;
 
     do {
-	long long_length = 32;
-	u_long bytes_after;
-	while (1)
-	{
-	    if (data != NULL)
-		XFree (data);
+        long long_length = 32;
+        u_long bytes_after;
+        while (1)
+        {
+            if (data != NULL)
+                XFree (data);
 
-	    if (XGetWindowProperty (x_dpy, id, atom, 0, long_length, False,
-				    AnyPropertyType, &type, &format,
-				    &nitems, &bytes_after, &data) != Success)
-		return nil;
-	    if (type == None)
-		return nil;
-	    if (bytes_after == 0)
-		break;
-	    long_length += (bytes_after / sizeof(unsigned long)) + 1;
-	}
+            if (XGetWindowProperty (x_dpy, id, atom, 0, long_length, False,
+                                    AnyPropertyType, &type, &format,
+                                    &nitems, &bytes_after, &data) != Success)
+                return nil;
+            if (type == None)
+                return nil;
+            if (bytes_after == 0)
+                break;
+            long_length += (bytes_after / sizeof(unsigned long)) + 1;
+        }
     } while (0);
 
     if (format == 8) {

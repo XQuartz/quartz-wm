@@ -1,6 +1,6 @@
 /* quartz-wm.h
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -39,29 +39,29 @@
 #include "dock-support.h"
 
 #define X_ROOT_WINDOW_EVENTS				\
-    (SubstructureRedirectMask | SubstructureNotifyMask	\
-     | StructureNotifyMask)
+(SubstructureRedirectMask | SubstructureNotifyMask	\
+| StructureNotifyMask)
 
 #define X_CLIENT_WINDOW_EVENTS				\
-    (PropertyChangeMask | StructureNotifyMask		\
-     | ColormapChangeMask)
+(PropertyChangeMask | StructureNotifyMask		\
+| ColormapChangeMask)
 
 #define X_CLIENT_BUTTON_GRAB_EVENTS			\
-    (ButtonPressMask | ButtonReleaseMask)
+(ButtonPressMask | ButtonReleaseMask)
 
 #define X_FRAME_WINDOW_EVENTS				\
-    (ButtonPressMask | ButtonReleaseMask		\
-     | ButtonMotionMask | PointerMotionHintMask		\
-     | SubstructureRedirectMask | FocusChangeMask	\
-     | EnterWindowMask | LeaveWindowMask		\
-     | ExposureMask)
+(ButtonPressMask | ButtonReleaseMask		\
+| ButtonMotionMask | PointerMotionHintMask		\
+| SubstructureRedirectMask | FocusChangeMask	\
+| EnterWindowMask | LeaveWindowMask		\
+| ExposureMask)
 
 #define X_TRACKING_WINDOW_EVENTS			\
-    (EnterWindowMask | LeaveWindowMask)
+(EnterWindowMask | LeaveWindowMask)
 
 #define X_GROWBOX_WINDOW_EVENTS				\
-    (ButtonPressMask | ButtonReleaseMask		\
-     | ButtonMotionMask | PointerMotionHintMask)
+(ButtonPressMask | ButtonReleaseMask		\
+| ButtonMotionMask | PointerMotionHintMask)
 
 #define DRAG_THRESHOLD 3
 

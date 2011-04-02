@@ -1,6 +1,6 @@
 /* x-list.h -- simple list type
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -55,18 +55,18 @@ X_EXTERN x_list *X_PFX (list_reverse) (x_list *lst);
 X_EXTERN x_list *X_PFX (list_find) (x_list *lst, void *data);
 X_EXTERN x_list *X_PFX (list_nth) (x_list *lst, int n);
 X_EXTERN x_list *X_PFX (list_filter) (x_list *src,
-				      int (*pred) (void *item, void *data),
-				      void *data);
+                                      int (*pred) (void *item, void *data),
+                                      void *data);
 X_EXTERN x_list *X_PFX (list_map) (x_list *src,
-				   void *(*fun) (void *item, void *data),
-				   void *data);
+                                   void *(*fun) (void *item, void *data),
+                                   void *data);
 
 X_EXTERN unsigned int X_PFX (list_length) (x_list *lst);
 X_EXTERN void X_PFX (list_foreach) (x_list *lst, void (*fun)
-				    (void *data, void *user_data),
-				    void *user_data);
+                                    (void *data, void *user_data),
+                                    void *user_data);
 
 X_EXTERN x_list *X_PFX (list_sort) (x_list *lst, int (*less) (const void *,
-							    const void *));
+                                                              const void *));
 
 #endif /* X_LIST_H */

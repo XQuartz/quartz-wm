@@ -1,6 +1,6 @@
 /* x11-geometry.h
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -38,7 +38,7 @@ extern X11Rect X11EmptyRect;
 static inline X11Rect X11RectMake(int32_t x, int32_t y, int32_t w, int32_t h) {
     X11Rect ret;
     ret.x = x;
-    ret.y = y;   
+    ret.y = y;
     ret.width = w;
     ret.height = h;
     return ret;

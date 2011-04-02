@@ -1,6 +1,6 @@
 /* frame.h
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -68,14 +68,14 @@ typedef enum xp_frame_attr_enum xp_frame_attr;
 #endif
 
 extern void draw_frame (int screen, Window id, X11Rect outer_r,
-			X11Rect inner_r, xp_frame_class class,
-			xp_frame_attr attr, CFStringRef title);
+                        X11Rect inner_r, xp_frame_class class,
+                        xp_frame_attr attr, CFStringRef title);
 extern int frame_titlebar_height (xp_frame_class class);
 extern X11Rect frame_tracking_rect (X11Rect outer_r, X11Rect inner_r,
-                                   xp_frame_class class);
-extern X11Rect frame_growbox_rect (X11Rect outer_r, X11Rect inner_r, 
+                                    xp_frame_class class);
+extern X11Rect frame_growbox_rect (X11Rect outer_r, X11Rect inner_r,
                                    xp_frame_class class);
 extern unsigned int frame_hit_test (X11Rect outer_r, X11Rect inner_r,
-				    xp_frame_class class, X11Point p);
+                                    xp_frame_class class, X11Point p);
 
 #endif /* XP_FRAME_H */

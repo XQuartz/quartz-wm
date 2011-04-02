@@ -1,6 +1,6 @@
 /* dock-support.h
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -40,9 +40,9 @@ typedef unsigned int OSXSpaceID;
 
 /* Dock location */
 typedef enum {
-   kDockBottom = 2,
-   kDockLeft   = 3,
-   kDockRight  = 4,
+    kDockBottom = 2,
+    kDockLeft   = 3,
+    kDockRight  = 4,
 } DockOrientation;
 
 extern DockOrientation DockGetOrientation(void);

@@ -1,6 +1,6 @@
 /* utils.h
  *
- * Copyright (c) 2002-2010 Apple Inc. All Rights Reserved.
+ * Copyright (c) 2002-2011 Apple Inc. All Rights Reserved.
  *
  * @APPLE_LICENSE_HEADER_START@
  *
@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -32,7 +32,7 @@
 #undef   Cursor
 
 extern int x_get_property (Window id, Atom atom, long *dest,
-			   unsigned int dest_size, unsigned int min_items);
+                           unsigned int dest_size, unsigned int min_items);
 extern NSString *x_get_string_property (Window id, Atom atom);
 
 #endif /* UTILS_H */
