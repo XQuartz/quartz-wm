@@ -921,10 +921,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         Window id = [self toplevel_id];
         long data;
 
-        /* FIXME: Add query to AppleWM? */
-
         if (x_get_property (id, atoms.native_window_id, &data, 1, 1))
             _osx_id = (OSXWindowID) data;
+
+        DB("Window 0x%x with frame 0x%x has a new _osx_id: %u\n", _id, _frame_id, _osx_id);
     }
 
     return _osx_id;
@@ -1562,12 +1562,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) update_parent
 {
     long data;
-    Window transient_for = 0;
+    Window wm_transient_for = 0;
 
     if(x_get_property(_id, atoms.wm_transient_for, &data, 1, 1))
-        transient_for = data;
+        wm_transient_for = data;
 
-    if(transient_for != _transient_for_id) {
+    if(wm_transient_for != _transient_for_id) {
         /* We have a change */
 
         /* Remove this window from the parent's transient list */
@@ -1576,7 +1576,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         }
 
         /* Set our local state */
-        _transient_for_id = transient_for;
+        _transient_for_id = wm_transient_for;
         if(_transient_for_id == 0 ||
            (_transient_for = x_get_window(_transient_for_id)) == NULL) {
 
@@ -1589,7 +1589,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         }
     }
 
-    /* We do this outside of the change-check since get_osx_id can be NULL during init */
+    /* We do this outside of the change-check since get_osx_id can be NULL during init or
+     * can change when we change XP_FRAME_CLASS_DECOR.
+     */
     if([self get_osx_id] != kOSXNullWindowID) {
         if(_XAppleWMAttachTransient) {
             Window transient_frame_id = _transient_for ? _transient_for->_frame_id : 0;
@@ -1625,6 +1627,19 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         [self update_frame];
     } else if (atom == atoms.native_window_id) {
         _osx_id = kOSXNullWindowID;
+
+        /* XAppleWMAttachTransient needs to be called again when the native_window_id changes
+         *
+         * TODO: Handle this in the server? Xplugin?
+         */
+        [self update_parent];
+        if(_transients) {
+            x_list *node;
+            for(node = _transients; node; node = node->next) {
+                x_window *child = node->data;
+                [child update_parent];
+            }
+        }
     } else if (atom == atoms.wm_colormap_windows) {
         [self update_colormaps];
     }
