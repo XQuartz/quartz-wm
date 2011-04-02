@@ -1375,8 +1375,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) do_net_wm_state_change:(int)mode atom:(Atom)state
 {
-    BOOL need_update = NO;
-
     /* _NET_WM_STATE_REMOVE        0    remove/unset property
      * _NET_WM_STATE_ADD           1    add/set property
      * _NET_WM_STATE_TOGGLE        2    toggle property
@@ -1399,8 +1397,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             x_add_window_to_menu (self);
         else
             x_remove_window_from_menu (self);
-
-        need_update = YES;
     } else if(state == atoms.net_wm_state_maximized_horiz ||
               state == atoms.net_wm_state_maximized_vert) {
         BOOL maximized = X11RectEqualToRect(_current_frame, [_screen zoomed_rect:X11RectOrigin(_current_frame)]);
@@ -1413,19 +1409,15 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
         else
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_MANAGED;
-        // TODO: Better determine the !sticky case... managed or transient
-        need_update = YES;
+        // We don't care about the TRANSIENT case because we'll update it in update_frame:
     } else if(state == atoms.net_wm_state_fullscreen) {
-        [self do_fullscreen:(mode == 1 || (mode == 2 && !_fullscreen))];
+        _fullscreen = (mode == 1 || (mode == 2 && !_fullscreen));
     } else if(state == atoms.net_wm_state_modal) {
         _modal = (state == 1 || (mode == 2 && !_modal));
-        need_update = YES;
     }
 
-    if (need_update) {
-        [self update_net_wm_state_property];
-        [self update_frame:YES];
-    }
+    [self update_net_wm_state_property];
+    [self update_frame:YES];
 }
 
 - (void) update_net_wm_action_property
@@ -1543,7 +1535,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             XAppleWMSetWindowLevel(x_dpy, _reparented ? _frame_id : _id, _level);
         
         // TODO: Handle change in XP_FRAME_CLASS_DECOR
-        // TODO: Handle change in window menu
         [self decorate];
     }
 }
