@@ -104,7 +104,6 @@
     unsigned _shadable :1;
     unsigned _in_window_menu :1;
     unsigned _pending_raise :1;
-    unsigned _exposed :1;
 
     NSString *_title;
     int _shortcut_index;		/* 0 for unset */

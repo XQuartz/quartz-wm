@@ -265,7 +265,6 @@ static const char *gravity_type(int gravity) {
     }
 
     _reparented = NO;
-    _exposed = NO;
     _decorated = NO;
 }
 
@@ -1016,7 +1015,7 @@ static const char *gravity_type(int gravity) {
     X11Rect ir;
     unsigned frame_attr = _frame_attr;
     
-    if (!_exposed || !_reparented || _hidden)
+    if (!_reparented || _hidden)
     {
 	_pending_decorate = YES;
 	return;
@@ -1052,7 +1051,6 @@ static const char *gravity_type(int gravity) {
 
 - (void) expose
 {
-    _exposed = YES;
     [self decorate];
 }
 
@@ -1872,7 +1870,6 @@ static const char *gravity_type(int gravity) {
     if (state)
     {
 	XUnmapWindow (x_dpy, _frame_id);
-	_exposed = NO;
 	[self set_wm_state:IconicState];
     }
     else
@@ -1971,7 +1968,6 @@ static const char *gravity_type(int gravity) {
         
         [self map_unmap_client];
         XUnmapWindow (x_dpy, _frame_id);
-        _exposed = NO;
     }
 }
 
@@ -2154,7 +2150,6 @@ static const char *gravity_type(int gravity) {
     if (_reparented)
     {
 	XUnmapWindow (x_dpy, _frame_id);
-	_exposed = NO;
     }
 
     [self map_unmap_client];
