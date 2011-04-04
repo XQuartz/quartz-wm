@@ -146,7 +146,7 @@ struct atoms_struct_t {
     Atom net_wm_state;
     Atom net_wm_state_fullscreen;
     Atom net_wm_state_hidden;
-    Atom net_wm_state_maximized_horiz;
+    Atom net_wm_state_maximized_horz;
     Atom net_wm_state_maximized_vert;
     Atom net_wm_state_modal;
     Atom net_wm_state_shaded;
@@ -189,6 +189,9 @@ extern struct atoms_struct_t atoms;
 
 #ifdef DEBUG
 #define DB(msg, args...) debug_printf("%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args)
+
+extern const char *str_for_atom(Atom atom);
+
 #else
 #define DB(msg, args...) do {} while (0)
 #endif

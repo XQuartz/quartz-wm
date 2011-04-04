@@ -101,7 +101,7 @@ static const char *gravity_type(int gravity) {
 @implementation x_window
 
 #undef TRACE
-#define TRACE() DB("TRACE: %x\n", _id)
+#define TRACE() DB("TRACE: id: 0x%x frame_id: 0x%x\n", _id, _frame_id)
 
 #define DISABLE_EVENTS(wid, mask)				\
 do {							\
@@ -547,6 +547,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     resized = !(_current_frame.width == r.width && _current_frame.height == r.height);
 
+    DB("id: 0x%x frame_id: 0x%x resized: %d r:(%d,%d %dx%d) current_frame:(%d,%d %dx%d)\n",
+       _id, _frame_id, resized, r.x, r.y, r.width, r.height,
+       _current_frame.x, _current_frame.y, _current_frame.width, _current_frame.height);
+
     if (resized)
         [_screen disable_update];
 
@@ -575,7 +579,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) resize_frame:(X11Rect)r force:(BOOL)flag {
     X11Rect fr;
 
-    TRACE();
+    DB("id: 0x%x frame_id: 0x%x rect:(%d,%d %dx%d) force:%d\n", _id, _frame_id,
+       r.x, r.y, r.width, r.height, flag);
 
     fr = r;
 
@@ -912,6 +917,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) update_shape
 {
+    TRACE();
     [self update_shape:[self frame_outer_rect]];
 }
 
@@ -1328,7 +1334,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _in_window_menu = NO;
         else if ((Atom)_atoms[i] == atoms.net_wm_state_fullscreen)
             fullscreen = YES;
-        else if ((Atom)_atoms[i] == atoms.net_wm_state_maximized_horiz ||
+        else if ((Atom)_atoms[i] == atoms.net_wm_state_maximized_horz ||
                  (Atom)_atoms[i] == atoms.net_wm_state_maximized_vert)
             maximized = YES;
         else if ((Atom)_atoms[i] == atoms.net_wm_state_sticky)
@@ -1353,6 +1359,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     long _atoms[32];
     int n_atoms = 0;
 
+    TRACE();
+    
     if(_modal)
         _atoms[n_atoms++] = atoms.net_wm_state_modal;
     if(_minimized)
@@ -1366,7 +1374,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if(_fullscreen)
         _atoms[n_atoms++] = atoms.net_wm_state_fullscreen;
     if(X11RectEqualToRect(_current_frame, [_screen zoomed_rect:X11RectOrigin(_current_frame)])) {
-        _atoms[n_atoms++] = atoms.net_wm_state_maximized_horiz;
+        _atoms[n_atoms++] = atoms.net_wm_state_maximized_horz;
         _atoms[n_atoms++] = atoms.net_wm_state_maximized_vert;
     }
     if(_frame_behavior == XP_FRAME_CLASS_BEHAVIOR_STATIONARY)
@@ -1383,6 +1391,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
      * _NET_WM_STATE_ADD           1    add/set property
      * _NET_WM_STATE_TOGGLE        2    toggle property
      */
+    
+    DB("Atom: %s Action: %s\n", str_for_atom(state), mode ? (mode == 1 ? "_NET_WM_STATE_ADD" : "_NET_WM_STATE_TOGGLE") : "_NET_WM_STATE_REMOVE");
+    
     if(state == atoms.net_wm_state_shaded) {
         if (mode == 0 || (mode == 2 && _shaded))
             [self do_unshade:CurrentTime];
@@ -1401,7 +1412,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             x_add_window_to_menu (self);
         else
             x_remove_window_from_menu (self);
-    } else if(state == atoms.net_wm_state_maximized_horiz ||
+    } else if(state == atoms.net_wm_state_maximized_horz ||
               state == atoms.net_wm_state_maximized_vert) {
         BOOL maximized = X11RectEqualToRect(_current_frame, [_screen zoomed_rect:X11RectOrigin(_current_frame)]);
         if(mode == 1 || (mode == 2 && !maximized))
@@ -1420,6 +1431,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _modal = (state == 1 || (mode == 2 && !_modal));
     }
 
+    DB("update_net_wm_state_property from do_net_wm_state_change\n");
     [self update_net_wm_state_property];
     [self update_frame];
 }
@@ -1500,6 +1512,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 {
     int old_level = _level;
 
+    TRACE();
+    
     /* Start with the default set. */
     _always_click_through = NO;
     _frame_attr  |= (XP_FRAME_ATTR_CLOSE_BOX | XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
@@ -1526,6 +1540,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     
     /* Notify listeners about our updated properties */
     [self update_net_wm_action_property];
+    DB("update_net_wm_state_property from do_net_wm_state_change\n");
     [self update_net_wm_state_property];
 
     /* Only adjust if we're already reparented */
@@ -1612,6 +1627,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) property_changed:(Atom)atom
 {
+    DB("Atom: %s\n", str_for_atom(atom));
+
     if(atom == atoms.wm_name ||
        atom == atoms.net_wm_name) {
         [self update_wm_name];
@@ -2167,6 +2184,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (_focused)
         [self focus:timestamp raise:YES force:YES];
 
+    DB("update_net_wm_state_property from do_shade\n");
     [self update_net_wm_state_property];
 }
 
@@ -2191,6 +2209,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (_focused)
         [self focus:timestamp raise:YES force:NO];
 
+    DB("update_net_wm_state_property from do_unshade\n");
     [self update_net_wm_state_property];
 }
 
@@ -2220,6 +2239,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 
     [self resize_frame:new_rect];
+    DB("update_net_wm_state_property from do_zoom\n");
     [self update_net_wm_state_property];
 }
 
@@ -2236,7 +2256,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if(!X11RectEqualToRect(_current_frame, maximized_rect)) {
         _unzoomed_frame = _current_frame;
         [self resize_frame:maximized_rect];
-        [self update_net_wm_state_property]; 
+        DB("update_net_wm_state_property from do_maximize\n");
+        [self update_net_wm_state_property];
     }
 }
 
@@ -2244,6 +2265,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) do_fullscreen:(BOOL) flag {
     X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
 
+    DB("id: 0x%x frame_id: 0x%x currently: %d requested: %d\n", _id, _frame_id, _fullscreen, flag);
+    
     if(_fullscreen == flag)
         return;
 
@@ -2261,7 +2284,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         [self resize_frame:[self validate_frame_rect:_unzoomed_frame] force:YES];
     }
 
-
+    DB("update_net_wm_state_property from do_fullscreen\n");
     [self update_net_wm_state_property];
 }
 

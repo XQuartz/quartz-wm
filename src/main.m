@@ -256,7 +256,7 @@ x_init (void)
     atoms.net_wm_state = XInternAtom (x_dpy, "_NET_WM_STATE", False);
     atoms.net_wm_state_fullscreen = XInternAtom (x_dpy, "_NET_WM_STATE_FULLSCREEN", False);
     atoms.net_wm_state_hidden = XInternAtom (x_dpy, "_NET_WM_STATE_HIDDEN", False);
-    atoms.net_wm_state_maximized_horiz = XInternAtom (x_dpy, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+    atoms.net_wm_state_maximized_horz = XInternAtom (x_dpy, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
     atoms.net_wm_state_maximized_vert = XInternAtom (x_dpy, "_NET_WM_STATE_MAXIMIZED_VERT", False);
     atoms.net_wm_state_modal = XInternAtom (x_dpy, "_NET_WM_STATE_MODAL", False);
     atoms.net_wm_state_shaded = XInternAtom (x_dpy, "_NET_WM_STATE_SHADED", False);
@@ -999,6 +999,133 @@ int main (int argc, const char *argv[]) {
 
     return 0;
 }
+
+#ifdef DEBUG
+// for atom in $(grep XInternAtom main.m | grep \" | cut -f2 -d\" | sort -u); do printf "    if(atom == atoms.$(echo ${atom} | sed 's/^_//' | tr [:upper:] [:lower:]))\n        return \"${atom}\";\n"; done
+const char *str_for_atom(Atom atom) {
+    if(atom == atoms.atom)
+        return "ATOM";
+    if(atom == atoms.clipboard)
+        return "CLIPBOARD";
+    if(atom == atoms.cstring)
+        return "CSTRING";
+    if(atom == atoms.multiple)
+        return "MULTIPLE";
+    if(atom == atoms.primary)
+        return "PRIMARY";
+    if(atom == atoms.string)
+        return "STRING";
+    if(atom == atoms.targets)
+        return "TARGETS";
+    if(atom == atoms.text)
+        return "TEXT";
+    if(atom == atoms.utf8_string)
+        return "UTF8_STRING";
+    if(atom == atoms.wm_change_state)
+        return "WM_CHANGE_STATE";
+    if(atom == atoms.wm_colormap_windows)
+        return "WM_COLORMAP_WINDOWS";
+    if(atom == atoms.wm_delete_window)
+        return "WM_DELETE_WINDOW";
+    if(atom == atoms.wm_hints)
+        return "WM_HINTS";
+    if(atom == atoms.wm_name)
+        return "WM_NAME";
+    if(atom == atoms.wm_normal_hints)
+        return "WM_NORMAL_HINTS";
+    if(atom == atoms.wm_protocols)
+        return "WM_PROTOCOLS";
+    if(atom == atoms.wm_state)
+        return "WM_STATE";
+    if(atom == atoms.wm_take_focus)
+        return "WM_TAKE_FOCUS";
+    if(atom == atoms.wm_transient_for)
+        return "WM_TRANSIENT_FOR";
+    if(atom == atoms.apple_no_order_in)
+        return "_APPLE_NO_ORDER_IN";
+    if(atom == atoms.motif_wm_hints)
+        return "_MOTIF_WM_HINTS";
+    if(atom == atoms.native_screen_origin)
+        return "_NATIVE_SCREEN_ORIGIN";
+    if(atom == atoms.native_window_id)
+        return "_NATIVE_WINDOW_ID";
+    if(atom == atoms.net_active_window)
+        return "_NET_ACTIVE_WINDOW";
+    if(atom == atoms.net_close_window)
+        return "_NET_CLOSE_WINDOW";
+    if(atom == atoms.net_wm_action_close)
+        return "_NET_WM_ACTION_CLOSE";
+    if(atom == atoms.net_wm_action_fullscreen)
+        return "_NET_WM_ACTION_FULLSCREEN";
+    if(atom == atoms.net_wm_action_maximize_horz)
+        return "_NET_WM_ACTION_MAXIMIZE_HORZ";
+    if(atom == atoms.net_wm_action_maximize_vert)
+        return "_NET_WM_ACTION_MAXIMIZE_VERT";
+    if(atom == atoms.net_wm_action_minimize)
+        return "_NET_WM_ACTION_MINIMIZE";
+    if(atom == atoms.net_wm_action_move)
+        return "_NET_WM_ACTION_MOVE";
+    if(atom == atoms.net_wm_action_resize)
+        return "_NET_WM_ACTION_RESIZE";
+    if(atom == atoms.net_wm_action_shade)
+        return "_NET_WM_ACTION_SHADE";
+    if(atom == atoms.net_wm_allowed_actions)
+        return "_NET_WM_ALLOWED_ACTIONS";
+    if(atom == atoms.net_wm_name)
+        return "_NET_WM_NAME";
+    if(atom == atoms.net_wm_state)
+        return "_NET_WM_STATE";
+    if(atom == atoms.net_wm_state_fullscreen)
+        return "_NET_WM_STATE_FULLSCREEN";
+    if(atom == atoms.net_wm_state_hidden)
+        return "_NET_WM_STATE_HIDDEN";
+    if(atom == atoms.net_wm_state_maximized_horz)
+        return "_NET_WM_STATE_MAXIMIZED_HORZ";
+    if(atom == atoms.net_wm_state_maximized_vert)
+        return "_NET_WM_STATE_MAXIMIZED_VERT";
+    if(atom == atoms.net_wm_state_modal)
+        return "_NET_WM_STATE_MODAL";
+    if(atom == atoms.net_wm_state_shaded)
+        return "_NET_WM_STATE_SHADED";
+    if(atom == atoms.net_wm_state_skip_pager)
+        return "_NET_WM_STATE_SKIP_PAGER";
+    if(atom == atoms.net_wm_state_skip_taskbar)
+        return "_NET_WM_STATE_SKIP_TASKBAR";
+    if(atom == atoms.net_wm_state_sticky)
+        return "_NET_WM_STATE_STICKY";
+    if(atom == atoms.net_wm_window_type)
+        return "_NET_WM_WINDOW_TYPE";
+    if(atom == atoms.net_wm_window_type_combo)
+        return "_NET_WM_WINDOW_TYPE_COMBO";
+    if(atom == atoms.net_wm_window_type_desktop)
+        return "_NET_WM_WINDOW_TYPE_DESKTOP";
+    if(atom == atoms.net_wm_window_type_dialog)
+        return "_NET_WM_WINDOW_TYPE_DIALOG";
+    if(atom == atoms.net_wm_window_type_dnd)
+        return "_NET_WM_WINDOW_TYPE_DND";
+    if(atom == atoms.net_wm_window_type_dock)
+        return "_NET_WM_WINDOW_TYPE_DOCK";
+    if(atom == atoms.net_wm_window_type_dropdown_menu)
+        return "_NET_WM_WINDOW_TYPE_DROPDOWN_MENU";
+    if(atom == atoms.net_wm_window_type_menu)
+        return "_NET_WM_WINDOW_TYPE_MENU";
+    if(atom == atoms.net_wm_window_type_normal)
+        return "_NET_WM_WINDOW_TYPE_NORMAL";
+    if(atom == atoms.net_wm_window_type_notification)
+        return "_NET_WM_WINDOW_TYPE_NOTIFICATION";
+    if(atom == atoms.net_wm_window_type_popup_menu)
+        return "_NET_WM_WINDOW_TYPE_POPUP_MENU";
+    if(atom == atoms.net_wm_window_type_splash)
+        return "_NET_WM_WINDOW_TYPE_SPLASH";
+    if(atom == atoms.net_wm_window_type_toolbar)
+        return "_NET_WM_WINDOW_TYPE_TOOLBAR";
+    if(atom == atoms.net_wm_window_type_tooltip)
+        return "_NET_WM_WINDOW_TYPE_TOOLTIP";
+    if(atom == atoms.net_wm_window_type_utility)
+        return "_NET_WM_WINDOW_TYPE_UTILITY";
+    return "(unknown atom)";
+}
+#endif
 
 void
 debug_printf (const char *fmt, ...)
