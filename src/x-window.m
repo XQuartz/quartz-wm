@@ -269,6 +269,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     _reparented = NO;
     _decorated = NO;
+    _pending_frame_change = NO;
+    _queued_frame_change = NO;
 }
 
 - (void) send_configure {
@@ -1553,8 +1555,19 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
         /* Handle difficult task of dealing with XP_FRAME_CLASS_DECOR changing */
         if(pending_frame_decor != _drawn_frame_decor) {
+            BOOL need_resize_frame = (_pending_frame_change || _queued_frame_change);
+            X11Rect new_frame_size;
+            
+            if(_queued_frame_change)
+                new_frame_size = _queued_frame;
+            else if(_pending_frame_change)
+                new_frame_size = _pending_frame;
+            
             [self reparent_out];
             [self reparent_in];
+            
+            if(need_resize_frame)
+                [self resize_frame:new_frame_size force:YES];
 
             [self map_unmap_client];
             if(_reparented)
@@ -2261,7 +2274,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 }
 
-/* This is purely X11-focused.  We don't do anything with OSX's presentation mode */
+/* This is purely X11-focused.  We don't do anything with OSX's presentation
+ * mode.  After calling this, we need to reparent_out and reparent_in to update
+ * the actual frame for Xplugin (done in update_frame).
+ */
 - (void) do_fullscreen:(BOOL) flag {
     X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
 
@@ -2270,20 +2286,19 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if(_fullscreen == flag)
         return;
 
-    _fullscreen = flag;
-
     if (!_has_unzoomed_frame) {
         _has_unzoomed_frame = YES;
         _unzoomed_frame = _current_frame;
     }
 
-    if(_fullscreen) {
+    if(flag) {
         _unzoomed_frame = _current_frame;
         [self resize_frame:maximized_rect force:YES];
     } else {
         [self resize_frame:[self validate_frame_rect:_unzoomed_frame] force:YES];
     }
 
+    _fullscreen = flag;
     DB("update_net_wm_state_property from do_fullscreen\n");
     [self update_net_wm_state_property];
 }
