@@ -39,12 +39,14 @@
 #define WINDOW_PLACE_DELTA_X 20
 #define WINDOW_PLACE_DELTA_Y 20
 
+#define XP_FRAME_CLASS_DECOR_MASK  (XP_FRAME_CLASS_DECOR_LARGE | XP_FRAME_CLASS_DECOR_SMALL | XP_FRAME_CLASS_DECOR_NONE)
+
 @interface x_window (local)
 - (void) update_wm_name;
 - (void) update_wm_protocols;
 - (void) update_wm_hints;
 - (void) update_size_hints;
-- (void) update_frame:(BOOL)do_decorate;
+- (void) update_frame;
 - (void) update_net_wm_type_hints;
 - (void) update_net_wm_state_hints;
 - (void) update_net_wm_state_property;
@@ -453,10 +455,14 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     _id = id;
     _screen = screen;
 
+    _drawn_frame_decor = 0;
+    
     _transient_for = NULL;
     _transient_for_id = _screen->_root;
     _transients = NULL;
 
+    _fullscreen = NO;
+    
     TRACE ();
 
     XSelectInput(x_dpy, _id, X_CLIENT_WINDOW_EVENTS);
@@ -467,9 +473,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     /* Get unmutable hints from attributes on the window */
     [self update_shaped];
-    _modal = NO;
-    _movable = YES;
-    _shadable = YES;
 
     /* Set the window name */
     [self update_wm_name];
@@ -487,7 +490,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     
     /* Setup our look */
     _frame_attr = 0;
-    [self update_frame:NO];
+    [self update_frame];
     XSetWindowBorderWidth (x_dpy, _id, 0);
 
     /* Figure out our frame dimensions */
@@ -976,6 +979,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         frame_attr &= ~XP_FRAME_ATTR_CLOSE_BOX;
     }
 
+    /* Save the *decoration* of our last draw */
+    _drawn_frame_decor = [self get_xp_frame_class] & XP_FRAME_CLASS_DECOR_MASK;
+    
     draw_frame (_screen->_id, _frame_id, or, ir, [self get_xp_frame_class],
                 frame_attr, (CFStringRef) [self title]);
 
@@ -1307,8 +1313,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     long _atoms[32];
     int i, n;
     BOOL shaded = NO;
-    BOOL fullscreen = NO;
     BOOL maximized = NO;
+    BOOL fullscreen = NO;
 
     n = x_get_property (_id, atoms.net_wm_state, _atoms, 32, 0);
 
@@ -1322,9 +1328,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _in_window_menu = NO;
         else if ((Atom)_atoms[i] == atoms.net_wm_state_fullscreen)
             fullscreen = YES;
-        else if ((Atom)_atoms[i] == atoms.net_wm_state_maximized_horiz)
-            maximized = YES;
-        else if ((Atom)_atoms[i] == atoms.net_wm_state_maximized_vert)
+        else if ((Atom)_atoms[i] == atoms.net_wm_state_maximized_horiz ||
+                 (Atom)_atoms[i] == atoms.net_wm_state_maximized_vert)
             maximized = YES;
         else if ((Atom)_atoms[i] == atoms.net_wm_state_sticky)
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
@@ -1335,13 +1340,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     else if (!_shaded && shaded && _shadable && window_shading)
         [self do_shade:CurrentTime];
 
-    if(maximized && (_frame_attr & XP_FRAME_ATTR_ZOOM))
-        [self do_maximize];
-
-    if(_fullscreen && !fullscreen)
-        [self do_fullscreen:NO];
-    else if(!_fullscreen && fullscreen && (_frame_attr & XP_FRAME_ATTR_ZOOM))
-        [self do_fullscreen:YES];
+    if(_frame_attr & XP_FRAME_ATTR_ZOOM) {
+        if(fullscreen)
+            [self do_fullscreen:YES];
+        else if(maximized)
+            [self do_maximize];
+    }
 }
 
 - (void) update_net_wm_state_property
@@ -1411,13 +1415,13 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_MANAGED;
         // We don't care about the TRANSIENT case because we'll update it in update_frame:
     } else if(state == atoms.net_wm_state_fullscreen) {
-        _fullscreen = (mode == 1 || (mode == 2 && !_fullscreen));
+        [self do_fullscreen:(mode == 1 || (mode == 2 && !_fullscreen))];
     } else if(state == atoms.net_wm_state_modal) {
         _modal = (state == 1 || (mode == 2 && !_modal));
     }
 
     [self update_net_wm_state_property];
-    [self update_frame:YES];
+    [self update_frame];
 }
 
 - (void) update_net_wm_action_property
@@ -1492,15 +1496,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 }
 
-- (void) update_frame:(BOOL)do_decorate
+- (void) update_frame
 {
     int old_level = _level;
-#if 0
-    /* TODO, handle change */
-    xp_frame_attr old_frame_attr = _frame_attr;
-    xp_frame_class old_frame_behavior = _frame_behavior;
-    xp_frame_class old_frame_decor = _frame_decor;
-#endif
 
     /* Start with the default set. */
     _always_click_through = NO;
@@ -1530,11 +1528,33 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     [self update_net_wm_action_property];
     [self update_net_wm_state_property];
 
-    if(do_decorate) {
-        if(_level != old_level)
-            XAppleWMSetWindowLevel(x_dpy, _reparented ? _frame_id : _id, _level);
+    /* Only adjust if we're already reparented */
+    if(_reparented) {
+        xp_frame_class pending_frame_decor = [self get_xp_frame_class] & XP_FRAME_CLASS_DECOR_MASK;
         
-        // TODO: Handle change in XP_FRAME_CLASS_DECOR
+        DB("id: 0x%x frame_id: 0x%x old decor: 0x%x new decor: 0x%x%s\n", _id,
+           _frame_id, _drawn_frame_decor, pending_frame_decor,
+           (pending_frame_decor == _drawn_frame_decor) ? "" : " FRAME CHANGE");
+
+        /* Handle difficult task of dealing with XP_FRAME_CLASS_DECOR changing */
+        if(pending_frame_decor != _drawn_frame_decor) {
+            [self reparent_out];
+            [self reparent_in];
+
+            [self map_unmap_client];
+            if(_reparented)
+                XMapWindow(x_dpy, _frame_id);
+
+            /* If we are focused, we need to re-acquire input focus after changing fullscreen
+             * status because we have a new frame_id */
+            if(_focused)
+                [self focus:CurrentTime raise:YES force:YES];
+
+            XAppleWMSetWindowLevel(x_dpy, _frame_id, _level);
+        } else if(_level != old_level) {
+            XAppleWMSetWindowLevel(x_dpy, _frame_id, _level);
+        }
+
         [self decorate];
     }
 }
@@ -1596,13 +1616,13 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     } else if (atom == atoms.wm_transient_for) {
         [self update_parent];
         [self update_group];
-        [self update_frame:YES];
+        [self update_frame];
     } else if(atom == atoms.wm_hints) {
         [self update_wm_hints];
         [self update_group];
     } else if(atom == atoms.wm_normal_hints ||
               atom == atoms.wm_protocols) {
-        [self update_frame:YES];
+        [self update_frame];
     } else if (atom == atoms.native_window_id) {
         _osx_id = kOSXNullWindowID;
     } else if (atom == atoms.wm_colormap_windows) {
@@ -2201,31 +2221,23 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if(!X11RectEqualToRect(_current_frame, maximized_rect)) {
         _unzoomed_frame = _current_frame;
         [self resize_frame:maximized_rect];
-        [self update_net_wm_state_property];
+        [self update_net_wm_state_property]; 
     }
 }
 
 /* This is purely X11-focused.  We don't do anything with OSX's presentation mode */
 - (void) do_fullscreen:(BOOL) flag {
     X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
-    BOOL decorated = _decorated;
 
     if(_fullscreen == flag)
         return;
+
+    _fullscreen = flag;
 
     if (!_has_unzoomed_frame) {
         _has_unzoomed_frame = YES;
         _unzoomed_frame = _current_frame;
     }
-
-    /* We are changing our frame class, so we need to reparent_out */
-    if(decorated)
-        [self reparent_out];
-
-    _fullscreen = flag;
-
-    if(decorated)
-        [self reparent_in];
 
     if(_fullscreen) {
         _unzoomed_frame = _current_frame;
@@ -2234,14 +2246,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         [self resize_frame:[self validate_frame_rect:_unzoomed_frame] force:YES];
     }
 
-    [self map_unmap_client];
-    if(_reparented)
-        XMapWindow(x_dpy, _frame_id);
-
-    /* If we are focused, we need to re-acquire input focus after changing fullscreen
-     * status because we have a new frame_id */
-    if(_focused)
-        [self focus:CurrentTime raise:YES force:YES];
 
     [self update_net_wm_state_property];
 }
