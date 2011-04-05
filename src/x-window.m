@@ -1343,17 +1343,17 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_STATIONARY;
     }
 
+    if(_frame_attr & XP_FRAME_ATTR_ZOOM) {
+        if(fullscreen)
+            [self do_fullscreen:YES]; // Can set !_shadable
+        else if(maximized)
+            [self do_maximize];
+    }
+
     if (_shaded && !shaded)
         [self do_unshade:CurrentTime];
     else if (!_shaded && shaded && _shadable && window_shading)
         [self do_shade:CurrentTime];
-
-    if(_frame_attr & XP_FRAME_ATTR_ZOOM) {
-        if(fullscreen)
-            [self do_fullscreen:YES];
-        else if(maximized)
-            [self do_maximize];
-    }
 }
 
 - (void) update_net_wm_state_property
@@ -1455,6 +1455,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     {
         _atoms[n_atoms++] = atoms.net_wm_action_maximize_horz;
         _atoms[n_atoms++] = atoms.net_wm_action_maximize_vert;
+        _atoms[n_atoms++] = atoms.net_wm_action_fullscreen;
+    } else if (_fullscreen) {
+        // We strip XP_FRAME_ATTR_ZOOM while in fullscreen
         _atoms[n_atoms++] = atoms.net_wm_action_fullscreen;
     }
     if ((_frame_attr & XP_FRAME_ATTR_CLOSE_BOX) && ![self has_modal_descendents]) {
@@ -2292,8 +2295,15 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 
     if(flag) {
+        _movable = NO;
+        _shadable = NO;
+        if(_shaded)
+            [self do_unshade:CurrentTime];
+
         _unzoomed_frame = _current_frame;
         [self resize_frame:maximized_rect force:YES];
+
+        _frame_attr &= ~(XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
     } else {
         [self resize_frame:[self validate_frame_rect:_unzoomed_frame] force:YES];
     }
