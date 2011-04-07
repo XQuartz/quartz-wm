@@ -846,6 +846,7 @@ x_release_window_shortcut (int x)
 /* Preferences */
 
 BOOL prefs_reload = NO;
+static BOOL do_shutdown = NO;
 
 static BOOL prefs_get_bool (CFStringRef key, BOOL def) {
     int ret;
@@ -877,13 +878,17 @@ static inline void prefs_read(void) {
     auto_quit_timeout   = prefs_get_int (CFSTR (PREFS_AUTO_QUIT_TIMEOUT), auto_quit_timeout);
 }
 
-static void prefs_reload_cb(CFRunLoopObserverRef observer,
-                            CFRunLoopActivity activity, void *info) {
-    x_list *s_node, *w_node;
-    x_window *w;
-    x_screen *s;
+static void signal_handler_cb(CFRunLoopObserverRef observer,
+                              CFRunLoopActivity activity, void *info) {
+
+    if(do_shutdown)
+        x_shutdown();
 
     if(prefs_reload) {
+        x_list *s_node, *w_node;
+        x_window *w;
+        x_screen *s;
+
         prefs_reload = NO;
         prefs_read();
 
@@ -902,12 +907,12 @@ static void prefs_reload_cb(CFRunLoopObserverRef observer,
     }
 }
 
-static void prefs_reload_init(void) {
+static void signal_handler_cb_init(void) {
     CFRunLoopObserverContext context = {0};
     CFRunLoopObserverRef ref;
 
     ref = CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopBeforeWaiting,
-                                  true, 0, prefs_reload_cb, &context);
+                                  true, 0, signal_handler_cb, &context);
 
     CFRunLoopAddObserver(CFRunLoopGetCurrent(), ref, kCFRunLoopDefaultMode);
 }
@@ -920,7 +925,8 @@ static void signal_handler (int sig) {
             prefs_reload = YES;
             break;
         default:
-            x_shutdown ();
+            do_shutdown = YES;
+            break;
     }
 }
 
@@ -978,7 +984,7 @@ int main (int argc, const char *argv[]) {
         return 1;
     }
 
-    prefs_reload_init();
+    signal_handler_cb_init();
     DockInit(_only_proxy);
     x_init ();
 
