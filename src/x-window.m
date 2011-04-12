@@ -2264,14 +2264,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     TRACE ();
 
-    if (!_has_unzoomed_frame) {
-        _unzoomed_frame = _current_frame;
-        _has_unzoomed_frame = YES;
-    }
-
     if(!X11RectEqualToRect(_current_frame, maximized_rect)) {
         _unzoomed_frame = _current_frame;
+        _has_unzoomed_frame = YES;
+
         [self resize_frame:maximized_rect];
+
         DB("update_net_wm_state_property from do_maximize\n");
         [self update_net_wm_state_property];
     }
@@ -2297,19 +2295,17 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if(_fullscreen == flag)
         return;
 
-    if (!_has_unzoomed_frame) {
-        _has_unzoomed_frame = YES;
-        _unzoomed_frame = _current_frame;
-    }
-
     if(flag) {
         _unzoomed_frame = _current_frame;
+        _has_unzoomed_frame = YES;
+
         [self resize_frame:maximized_rect force:YES];
     } else {
         [self resize_frame:[self validate_frame_rect:_unzoomed_frame] force:YES];
     }
 
     _fullscreen = flag;
+
     DB("update_net_wm_state_property from do_fullscreen\n");
     [self update_net_wm_state_property];
 }
