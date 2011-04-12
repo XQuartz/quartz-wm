@@ -79,6 +79,7 @@
     unsigned _set_shape :1;
     unsigned _decorated :1;
     unsigned _fullscreen :1;
+    unsigned _resizable :1;
     unsigned _animating :1;		/* (by the dock) */
     unsigned _shaded :1;
     unsigned _hidden :1;

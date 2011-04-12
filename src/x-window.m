@@ -808,7 +808,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         XSelectInput (x_dpy, _tracking_id, X_TRACKING_WINDOW_EVENTS);
     }
 
-    if (_growbox_id == 0 && !_shaded &&
+    if (_growbox_id == 0 && !_shaded && _resizable &&
         XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_ATTR_GROW_BOX))
     {
         XSetWindowAttributes attr;
@@ -836,7 +836,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         XMapRaised (x_dpy, _growbox_id);
         XSelectInput (x_dpy, _growbox_id, X_GROWBOX_WINDOW_EVENTS);
     }
-    else if (_growbox_id != 0 && (!XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_ATTR_GROW_BOX) || _shaded))
+    else if (_growbox_id != 0 && (_shaded || !_resizable || !XP_FRAME_ATTR_IS_SET (_frame_attr, XP_FRAME_ATTR_GROW_BOX)))
     {
         XDestroyWindow (x_dpy, _growbox_id);
         _growbox_id = 0;
@@ -1116,7 +1116,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if ((_size_hints.flags & (PMinSize | PMaxSize)) == (PMinSize | PMaxSize) &&
         _size_hints.min_width >= _size_hints.max_width &&
         _size_hints.min_height >= _size_hints.max_height) {
-        _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
+        _resizable = NO;
     }
 }
 
@@ -1190,12 +1190,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              */
 
             _always_click_through = YES;
-            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM);
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
             _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
             _in_window_menu = NO;
             _level = AppleWMWindowLevelTornOff;
             _movable = NO;
+            _resizable = NO;
             _shadable = NO;
 
             break;
@@ -1208,12 +1208,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              */
 
             _always_click_through = YES;
-            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM);
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
             _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
             _in_window_menu = NO;
             _level = AppleWMWindowLevelDesktop;
             _movable = NO;
+            _resizable = NO;
             _shadable = NO;
 
             break;
@@ -1238,12 +1238,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              * <rdar://problem/3205836> tooltips from KDE kicker show behind the kicker
              */
             _always_click_through = YES;
-            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM);
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
             _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
             _in_window_menu = NO;
             _level = AppleWMWindowLevelDock;
             _movable = NO;
+            _resizable = NO;
             _shadable = NO;
 
             break;
@@ -1262,12 +1262,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              */
             
             _always_click_through = YES;
-            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
             _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
             _in_window_menu = NO;
             _level = AppleWMWindowLevelFloating;
             _movable = NO;
+            _resizable = NO;
             _shadable = NO;
 
             break;
@@ -1286,11 +1286,11 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              */
 
             _always_click_through = YES;
-            _frame_attr &= ~(XP_FRAME_ATTR_GROW_BOX | XP_FRAME_ATTR_ZOOM);
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
             _frame_decor = XP_FRAME_CLASS_DECOR_SMALL;
             _in_window_menu = NO;
             _level = AppleWMWindowLevelTornOff;
+            _resizable = NO;
             _shadable = NO;
 
             break;            
@@ -1304,12 +1304,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              * WM_TRANSIENT_FOR hint indicating the main application window.
              */
 
-            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
             _frame_decor = XP_FRAME_CLASS_DECOR_SMALL;
             _level = AppleWMWindowLevelFloating;
             _in_window_menu = NO;
             _always_click_through = YES;
+            _resizable = NO;
             _shadable = NO;
 
             break;
@@ -1445,7 +1445,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     if (_movable)
         _atoms[n_atoms++] = atoms.net_wm_action_move;
-    if (_frame_attr & XP_FRAME_ATTR_GROW_BOX)
+    if (_resizable)
         _atoms[n_atoms++] = atoms.net_wm_action_resize;
     if (_frame_attr & XP_FRAME_ATTR_COLLAPSE)
         _atoms[n_atoms++] = atoms.net_wm_action_minimize;
@@ -1496,8 +1496,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     {
         /* hints[2] = decoration hints */
 
-        if (!(hints[2] & 9))
+        if (!(hints[2] & 9)) {
             _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
+            _frame_attr &= ~XP_FRAME_ATTR_GROW_BOX;
+        }
     }
     if (hints[3] != 0)
     {
@@ -1528,9 +1530,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     _level = AppleWMWindowLevelNormal;
     _modal = NO;
     _movable = YES;
+    _resizable = YES;
     _shadable = YES;
     
-    [self update_size_hints]; // Can remove XP_FRAME_ATTR_GROW_BOX from _frame_attr
+    [self update_size_hints]; // Can set !_resizable
     [self update_motif_hints];
     [self update_net_wm_type_hints];
     [self update_net_wm_state_hints];
@@ -1539,6 +1542,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if(_modal) {
         _in_window_menu = NO;
         _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
+    }
+    
+    if(!_resizable) {
+        _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
     }
 
     _frame_title_height = frame_titlebar_height([self get_xp_frame_class]);
@@ -2286,10 +2293,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     if(flag) {
         _movable = NO;
+        _resizable = NO;
         _shadable = NO;
         if(_shaded)
             [self do_unshade:CurrentTime];
-        _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
     }
 
     if(_fullscreen == flag)
