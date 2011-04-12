@@ -2289,7 +2289,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _shadable = NO;
         if(_shaded)
             [self do_unshade:CurrentTime];
-        _frame_attr &= ~(XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
+        _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
     }
 
     if(_fullscreen == flag)
