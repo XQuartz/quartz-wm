@@ -2285,7 +2285,15 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
 
     DB("id: 0x%x frame_id: 0x%x currently: %d requested: %d\n", _id, _frame_id, _fullscreen, flag);
-    
+
+    if(flag) {
+        _movable = NO;
+        _shadable = NO;
+        if(_shaded)
+            [self do_unshade:CurrentTime];
+        _frame_attr &= ~(XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
+    }
+
     if(_fullscreen == flag)
         return;
 
@@ -2295,15 +2303,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 
     if(flag) {
-        _movable = NO;
-        _shadable = NO;
-        if(_shaded)
-            [self do_unshade:CurrentTime];
-
         _unzoomed_frame = _current_frame;
         [self resize_frame:maximized_rect force:YES];
-
-        _frame_attr &= ~(XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
     } else {
         [self resize_frame:[self validate_frame_rect:_unzoomed_frame] force:YES];
     }
