@@ -2055,21 +2055,20 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 }
 
-- (void) collapse_finished:(BOOL)state
+- (void) collapse_finished:(BOOL)success
 {
     _animating = NO;
 
-    if (state)
-    {
-        XUnmapWindow (x_dpy, _frame_id);
-        [self set_wm_state:IconicState];
-    }
-    else
-    {
+    DB("success:%s\n", success ? "YES" : "NO");
+
+    if (!success) {
         _minimized = NO;
         _minimized_osx_id = kOSXNullWindowID;
+        return;
     }
 
+    XUnmapWindow (x_dpy, _frame_id);
+    [self set_wm_state:IconicState];
     [self map_unmap_client];
 
     [_screen window_hidden:self];
@@ -2080,7 +2079,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     OSXWindowID wid;
     OSStatus err;
 
-    TRACE ();
+    DB ("_minimized: %s _animating: %s\n", _minimized ? "YES" : "NO", _animating ? "YES" : "NO");
 
     if (_minimized || _animating)
         return;
@@ -2102,12 +2101,17 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 }
 
-- (void) uncollapse_finished:(BOOL)state
+- (void) uncollapse_finished:(BOOL)success
 {
     _animating = NO;
+    _minimized = !success;
+
+    DB("success:%s\n", success ? "YES" : "NO");
+
     XDeleteProperty (x_dpy, _frame_id, atoms.apple_no_order_in);
 
-    [self raise];
+    if(success)
+        [self raise];
 }
 
 - (void) do_uncollapse_and_tell_dock:(BOOL)tell_dock with_animation:(BOOL)anim
@@ -2115,7 +2119,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     OSStatus err = noErr;
     long data = 1;
 
-    TRACE ();
+    DB ("tell_dock: %s with_animation: %s _animating: %s\n", tell_dock ? "YES" : "NO", anim ? "YES" : "NO", _animating ? "YES" : "NO");
 
     if (!_minimized || (anim && _animating))
         return;
@@ -2151,7 +2155,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         [self set_wm_state:NormalState];
         [self send_configure];
 
-        if (!anim)
+        if (!(tell_dock && anim))
             [self uncollapse_finished:YES];
     } else {
         fprintf (stderr, "couldn't restore window: %d\n", (int) err);

@@ -186,8 +186,8 @@
 - (void) error_shutdown;
 - (void) update_colormaps;
 - (void) install_colormaps;
-- (void) collapse_finished:(BOOL)state;
-- (void) uncollapse_finished:(BOOL)state;
+- (void) collapse_finished:(BOOL)success;
+- (void) uncollapse_finished:(BOOL)success;
 
 @end
 
