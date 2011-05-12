@@ -460,7 +460,7 @@ window_level_less (const void *a, const void *b)
 {
     x_window *w;
     
-    DB("id: %x\n", id);
+    DB("id: %x initializing: %s\n", id, flag ? "YES" : "NO");
     
     w = [[x_window alloc] init_with_id:id screen:self initializing:flag];
     
@@ -660,7 +660,9 @@ window_level_less (const void *a, const void *b)
     X11Rect title_rect, title_int_rect;
     X11Rect ret;
     pixman_box32_t *e;
-    
+
+    TRACE();    
+
     // Figure out where the dock is to handle
     // <rdar://problem/7595340> X11 window can get lost under the dock
     // http://xquartz.macosforge.org/trac/ticket/329
@@ -704,7 +706,7 @@ window_level_less (const void *a, const void *b)
     pixman_region32_fini(&screen_region_no_dock);
     
     //e = pixman_region32_extents(&win_int);
-    //win_int_rect = X11RectMake(e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
+    //X11Rect win_int_rect = X11RectMake(e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
     //fprintf(stderr, "dock_rect: %d,%d %dx%d\n", dock_rect.x, dock_rect.y, dock_rect.width, dock_rect.height);
     //fprintf(stderr, "title_rect: %d,%d %dx%d\n", title_rect.x, title_rect.y, title_rect.width, title_rect.height);
     //fprintf(stderr, "title_int_rect: %d,%d %dx%d\n", title_int_rect.x, title_int_rect.y, title_int_rect.width, title_int_rect.height);

@@ -298,7 +298,11 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 }
 
 - (void) validate_position {
-    X11Rect r = [_screen validate_window_position:_current_frame titlebar_height:_frame_title_height];
+    X11Rect r;
+    
+    TRACE();
+    
+    r = [_screen validate_window_position:_current_frame titlebar_height:_frame_title_height];
 
     if(r.x != _current_frame.x || r.y != _current_frame.y) {
         XMoveWindow(x_dpy, _frame_id, r.x, r.y);
@@ -308,6 +312,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) place_window {
     x_list *group, *order;
     X11Rect r;
+    
+    TRACE();
 
     r = _current_frame;
 
@@ -465,7 +471,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     _fullscreen = NO;
     
-    TRACE ();
+    DB ("initializing: %s\n", flag ? "YES" : "NO");
 
     XSelectInput(x_dpy, _id, X_CLIENT_WINDOW_EVENTS);
     XShapeSelectInput(x_dpy, _id, ShapeNotifyMask);
@@ -1650,7 +1656,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) property_changed:(Atom)atom
 {
-    DB("Atom: %s\n", str_for_atom(atom));
+    DB("Atom: %s %ld\n", str_for_atom(atom), atom);
 
     if(atom == atoms.wm_name ||
        atom == atoms.net_wm_name) {
