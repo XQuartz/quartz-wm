@@ -323,8 +323,11 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     if (_size_hints.flags & (USPosition | PPosition)) {
         /* Do nothing except check position is valid. */
+        DB("USPosition | PPosition\n");
     } else if (_transient_for_id == _screen->_root) {
         X11Point p;
+
+        DB("Transient for root\n");
 
         /* Convention is this is an unparented dialog. Center on head
          * of topmost window in group.
@@ -343,12 +346,16 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         /* Dialog style placement. Try to center ourselves on top
          of the parent window. */
 
+        DB("Transient for someone (not root).  Dialog placement\n");
+
         r.x =   _transient_for->_current_frame.x
         + (_transient_for->_current_frame.width / 2.0)
         - (_current_frame.width / 2.0);
         r.y = _transient_for->_current_frame.y +
         _transient_for->_frame_title_height;
     } else {
+        DB("Document style placement.\n");
+
         /* Document style placement. Find the topmost document window
          * in the group, then place ourselves down and to the right of it.
          */
@@ -364,15 +371,29 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             {
                 r.x += WINDOW_PLACE_DELTA_X;
                 r.y += WINDOW_PLACE_DELTA_Y;
+            }
 
-                if (r.x + r.width > _screen->_x + _screen->_width
-                    || r.y + r.height > _screen->_y + _screen->_height)
-                {
-                    /* No room. */
-                    r.x = zoom_rect.x;
-                    r.y = zoom_rect.y;
-                    break;
-                }
+            DB("Check for room for r:(%d,%d %dx%d) zoom_rect:(%d,%d %dx%d)\n",
+               r.x, r.y, r.width, r.height,
+               zoom_rect.x, zoom_rect.y, zoom_rect.width, zoom_rect.height);    
+            
+            /* No room */
+            if(r.x + r.width > zoom_rect.width ||
+               r.y + r.height > zoom_rect.height)
+            {
+                r.x = zoom_rect.x;
+                r.y = zoom_rect.y;
+
+                DB("Nope.  Now at the origin: r:(%d,%d %dx%d) zoom_rect:(%d,%d %dx%d)\n",
+                   r.x, r.y, r.width, r.height,
+                   zoom_rect.x, zoom_rect.y, zoom_rect.width, zoom_rect.height);    
+                
+                /* Shrink if there still isn't room */
+                if(r.x + r.width > zoom_rect.x +  zoom_rect.width)
+                    r.width = zoom_rect.x + zoom_rect.width - r.x;
+                if(r.y + r.height > zoom_rect.y + zoom_rect.height)
+                    r.height = zoom_rect.y + zoom_rect.height - r.y;
+                
             }
         }
         else
@@ -381,11 +402,19 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
             r.x = w->_current_frame.x + WINDOW_PLACE_DELTA_X;
             r.y = w->_current_frame.y + WINDOW_PLACE_DELTA_Y;
+
+            /* Shrink if there isn't room */
+            if(r.x + r.width > _screen->_width)
+                r.width = _screen->_width - r.x;
+            if(r.y + r.height > _screen->_height)
+                r.height = _screen->_height - r.y;
         }
     }
 
     x_list_free (order);
 
+    DB("r:(%d,%d %dx%d)\n", r.x, r.y, r.width, r.height);    
+    
     r = [self validate_frame_rect:r from_user:NO constrain:NO];
     [self resize_frame:r];
 }
