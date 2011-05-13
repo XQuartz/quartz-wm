@@ -858,13 +858,12 @@ x_event_apple_wm_notify (XAppleWMNotifyEvent *e)
     }
 }
 
-#ifdef DEBUG
 static const char *
 event_name (int type)
 {
     switch (type)
     {
-            static char buf[64];
+        static char buf[64];
 
         case KeyPress: return "KeyPress";
         case KeyRelease: return "KeyRelease";
@@ -909,7 +908,6 @@ event_name (int type)
             return buf;
     }
 }
-#endif
 
 void
 x_input_run (void)

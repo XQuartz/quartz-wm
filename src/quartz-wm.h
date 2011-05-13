@@ -187,16 +187,11 @@ struct atoms_struct_t {
 
 extern struct atoms_struct_t atoms;
 
-#ifdef DEBUG
-#define DB(msg, args...) debug_printf("%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args)
-
+/* Debugging support */
+extern void debug_printf (const char *fmt, ...);
 extern const char *str_for_atom(Atom atom);
 
-#else
-#define DB(msg, args...) do {} while (0)
-#endif
-
+#define DB(msg, args...) debug_printf("%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args)
 #define TRACE() DB("TRACE\n")
-extern void debug_printf (const char *fmt, ...);
 
 #endif /* QUARTZ_WM_H */

@@ -1006,7 +1006,6 @@ int main (int argc, const char *argv[]) {
     return 0;
 }
 
-#ifdef DEBUG
 // for atom in $(grep XInternAtom main.m | grep \" | cut -f2 -d\" | sort -u); do printf "    if(atom == atoms.$(echo ${atom} | sed 's/^_//' | tr [:upper:] [:lower:]))\n        return \"${atom}\";\n"; done
 const char *str_for_atom(Atom atom) {
     if(atom == atoms.atom)
@@ -1131,7 +1130,6 @@ const char *str_for_atom(Atom atom) {
         return "_NET_WM_WINDOW_TYPE_UTILITY";
     return "(unknown atom)";
 }
-#endif
 
 void
 debug_printf (const char *fmt, ...)

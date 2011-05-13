@@ -69,7 +69,6 @@
 - (X11Rect) client_rect:(X11Rect)or;
 @end
 
-#ifdef DEBUG
 static const char *gravity_type(int gravity) {
     switch(gravity) {
         case NorthWestGravity:
@@ -96,7 +95,6 @@ static const char *gravity_type(int gravity) {
             return "NorthWestGravity";
     }
 }
-#endif
 
 @implementation x_window
 
