@@ -41,7 +41,13 @@ PKG_CHECK_MODULES(QUARTZWM, [applewm >= 1.4] pixman-1 x11 xext xinerama)
 AC_SUBST(QUARTZWM_CFLAGS)
 AC_SUBST(QUARTZWM_LIBS)
 
-AC_MSG_CHECKING(which object file to use for dok-support.o)
+AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=PATH], [Prefix to use for bundle identifiers (default: org.x)]),
+                               [ BUNDLE_ID_PREFIX="${withval}" ],
+                               [ BUNDLE_ID_PREFIX="org.x" ])
+AC_SUBST([BUNDLE_ID_PREFIX])
+AC_DEFINE_UNQUOTED(BUNDLE_ID_PREFIX, "$BUNDLE_ID_PREFIX", [Prefix to use for bundle identifiers])
+
+AC_MSG_CHECKING(which object file to use for dock-support.o)
 case $host_os in
 	darwin[678]*)
 		DOCK_SUPPORT_O="dock-support-10.4.o"

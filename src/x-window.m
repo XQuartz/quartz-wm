@@ -99,7 +99,7 @@ static const char *gravity_type(int gravity) {
 @implementation x_window
 
 #undef TRACE
-#define TRACE() DB("TRACE: id: 0x%x frame_id: 0x%x\n", _id, _frame_id)
+#define TRACE() DB("TRACE: id: 0x%x frame_id: 0x%x", _id, _frame_id)
 
 #define DISABLE_EVENTS(wid, mask)				\
 do {							\
@@ -321,11 +321,11 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     if (_size_hints.flags & (USPosition | PPosition)) {
         /* Do nothing except check position is valid. */
-        DB("USPosition | PPosition\n");
+        DB("USPosition | PPosition");
     } else if (_transient_for_id == _screen->_root) {
         X11Point p;
 
-        DB("Transient for root\n");
+        DB("Transient for root");
 
         /* Convention is this is an unparented dialog. Center on head
          * of topmost window in group.
@@ -344,7 +344,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         /* Dialog style placement. Try to center ourselves on top
          of the parent window. */
 
-        DB("Transient for someone (not root).  Dialog placement\n");
+        DB("Transient for someone (not root).  Dialog placement");
 
         r.x =   _transient_for->_current_frame.x
         + (_transient_for->_current_frame.width / 2.0)
@@ -352,7 +352,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         r.y = _transient_for->_current_frame.y +
         _transient_for->_frame_title_height;
     } else {
-        DB("Document style placement.\n");
+        DB("Document style placement.");
 
         /* Document style placement. Find the topmost document window
          * in the group, then place ourselves down and to the right of it.
@@ -371,7 +371,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
                 r.y += WINDOW_PLACE_DELTA_Y;
             }
 
-            DB("Check for room for r:(%d,%d %dx%d) zoom_rect:(%d,%d %dx%d)\n",
+            DB("Check for room for r:(%d,%d %dx%d) zoom_rect:(%d,%d %dx%d)",
                r.x, r.y, r.width, r.height,
                zoom_rect.x, zoom_rect.y, zoom_rect.width, zoom_rect.height);    
             
@@ -382,7 +382,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
                 r.x = zoom_rect.x;
                 r.y = zoom_rect.y;
 
-                DB("Nope.  Now at the origin: r:(%d,%d %dx%d) zoom_rect:(%d,%d %dx%d)\n",
+                DB("Nope.  Now at the origin: r:(%d,%d %dx%d) zoom_rect:(%d,%d %dx%d)",
                    r.x, r.y, r.width, r.height,
                    zoom_rect.x, zoom_rect.y, zoom_rect.width, zoom_rect.height);    
                 
@@ -411,7 +411,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     x_list_free (order);
 
-    DB("r:(%d,%d %dx%d)\n", r.x, r.y, r.width, r.height);    
+    DB("r:(%d,%d %dx%d)", r.x, r.y, r.width, r.height);    
     
     r = [self validate_frame_rect:r from_user:NO constrain:NO];
     [self resize_frame:r];
@@ -474,7 +474,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             break;
     }
 
-    DB("Window %ul gravity: %s %d,%d %dx%d -> %d,%d %dx%d\n",
+    DB("Window %ul gravity: %s %d,%d %dx%d -> %d,%d %dx%d",
        (unsigned int)_id, gravity_type(_size_hints.win_gravity),
        (int)winrect.x, (int)winrect.y, (int)winrect.width, (int)winrect.height,
        x, y, (int)winrect.width + x_pad_l + x_pad_r, (int)winrect.height + y_pad_t + y_pad_b);
@@ -499,7 +499,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     _fullscreen = NO;
     
-    DB ("initializing: %s\n", flag ? "YES" : "NO");
+    DB ("initializing: %s", flag ? "YES" : "NO");
 
     XSelectInput(x_dpy, _id, X_CLIENT_WINDOW_EVENTS);
     XShapeSelectInput(x_dpy, _id, ShapeNotifyMask);
@@ -586,7 +586,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     resized = !(_current_frame.width == r.width && _current_frame.height == r.height);
 
-    DB("id: 0x%x frame_id: 0x%x resized: %d r:(%d,%d %dx%d) current_frame:(%d,%d %dx%d)\n",
+    DB("id: 0x%x frame_id: 0x%x resized: %d r:(%d,%d %dx%d) current_frame:(%d,%d %dx%d)",
        _id, _frame_id, resized, r.x, r.y, r.width, r.height,
        _current_frame.x, _current_frame.y, _current_frame.width, _current_frame.height);
 
@@ -624,7 +624,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) resize_frame:(X11Rect)r force:(BOOL)flag {
     X11Rect fr;
 
-    DB("id: 0x%x frame_id: 0x%x rect:(%d,%d %dx%d) force:%d\n", _id, _frame_id,
+    DB("id: 0x%x frame_id: 0x%x rect:(%d,%d %dx%d) force:%d", _id, _frame_id,
        r.x, r.y, r.width, r.height, flag);
 
     fr = r;
@@ -975,7 +975,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         if (x_get_property (id, atoms.native_window_id, &data, 1, 1))
             _osx_id = (OSXWindowID) data;
 
-        DB("Window 0x%x with frame 0x%x has a new _osx_id: %u\n", _id, _frame_id, _osx_id);
+        DB("Window 0x%x with frame 0x%x has a new _osx_id: %u", _id, _frame_id, _osx_id);
     }
 
     return _osx_id;
@@ -1437,7 +1437,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
      * _NET_WM_STATE_TOGGLE        2    toggle property
      */
     
-    DB("Atom: %s Action: %s\n", str_for_atom(state), mode ? (mode == 1 ? "_NET_WM_STATE_ADD" : "_NET_WM_STATE_TOGGLE") : "_NET_WM_STATE_REMOVE");
+    DB("Atom: %s Action: %s", str_for_atom(state), mode ? (mode == 1 ? "_NET_WM_STATE_ADD" : "_NET_WM_STATE_TOGGLE") : "_NET_WM_STATE_REMOVE");
     
     if(state == atoms.net_wm_state_shaded) {
         if (mode == 0 || (mode == 2 && _shaded))
@@ -1476,7 +1476,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _modal = (state == 1 || (mode == 2 && !_modal));
     }
 
-    DB("update_net_wm_state_property from do_net_wm_state_change\n");
+    DB("update_net_wm_state_property from do_net_wm_state_change");
     [self update_net_wm_state_property];
     [self update_frame];
 }
@@ -1595,14 +1595,14 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     
     /* Notify listeners about our updated properties */
     [self update_net_wm_action_property];
-    DB("update_net_wm_state_property from do_net_wm_state_change\n");
+    DB("update_net_wm_state_property from do_net_wm_state_change");
     [self update_net_wm_state_property];
 
     /* Only adjust if we're already reparented */
     if(_reparented) {
         xp_frame_class pending_frame_decor = [self get_xp_frame_class] & XP_FRAME_CLASS_DECOR_MASK;
         
-        DB("id: 0x%x frame_id: 0x%x old decor: 0x%x new decor: 0x%x%s\n", _id,
+        DB("id: 0x%x frame_id: 0x%x old decor: 0x%x new decor: 0x%x%s", _id,
            _frame_id, _drawn_frame_decor, pending_frame_decor,
            (pending_frame_decor == _drawn_frame_decor) ? "" : " FRAME CHANGE");
 
@@ -1693,7 +1693,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) property_changed:(Atom)atom
 {
-    DB("Atom: %s %ld\n", str_for_atom(atom), atom);
+    DB("Atom: %s %ld", str_for_atom(atom), atom);
 
     if(atom == atoms.wm_name ||
        atom == atoms.net_wm_name) {
@@ -2102,7 +2102,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 {
     _animating = NO;
 
-    DB("success:%s\n", success ? "YES" : "NO");
+    DB("success:%s", success ? "YES" : "NO");
 
     if (!success) {
         _minimized = NO;
@@ -2122,7 +2122,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     OSXWindowID wid;
     OSStatus err;
 
-    DB ("_minimized: %s _animating: %s\n", _minimized ? "YES" : "NO", _animating ? "YES" : "NO");
+    DB ("_minimized: %s _animating: %s", _minimized ? "YES" : "NO", _animating ? "YES" : "NO");
 
     if (_minimized || _animating)
         return;
@@ -2140,7 +2140,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
     else
     {
-        fprintf (stderr, "couldn't minimize window: %d\n", (int) err);
+        asl_log(aslc, NULL, ASL_LEVEL_WARNING, "couldn't minimize window: %d", (int) err);
     }
 }
 
@@ -2149,7 +2149,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     _animating = NO;
     _minimized = !success;
 
-    DB("success:%s\n", success ? "YES" : "NO");
+    DB("success:%s", success ? "YES" : "NO");
 
     XDeleteProperty (x_dpy, _frame_id, atoms.apple_no_order_in);
 
@@ -2162,7 +2162,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     OSStatus err = noErr;
     long data = 1;
 
-    DB ("tell_dock: %s with_animation: %s _animating: %s\n", tell_dock ? "YES" : "NO", anim ? "YES" : "NO", _animating ? "YES" : "NO");
+    DB ("tell_dock: %s with_animation: %s _animating: %s", tell_dock ? "YES" : "NO", anim ? "YES" : "NO", _animating ? "YES" : "NO");
 
     if (!_minimized || (anim && _animating))
         return;
@@ -2201,7 +2201,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         if (!(tell_dock && anim))
             [self uncollapse_finished:YES];
     } else {
-        fprintf (stderr, "couldn't restore window: %d\n", (int) err);
+        asl_log(aslc, NULL, ASL_LEVEL_WARNING, "couldn't restore window: %d", (int) err);
 
         _minimized = YES;
 
@@ -2254,7 +2254,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (_focused)
         [self focus:timestamp raise:YES force:YES];
 
-    DB("update_net_wm_state_property from do_shade\n");
+    DB("update_net_wm_state_property from do_shade");
     [self update_net_wm_state_property];
 }
 
@@ -2279,7 +2279,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (_focused)
         [self focus:timestamp raise:YES force:NO];
 
-    DB("update_net_wm_state_property from do_unshade\n");
+    DB("update_net_wm_state_property from do_unshade");
     [self update_net_wm_state_property];
 }
 
@@ -2309,7 +2309,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 
     [self resize_frame:new_rect];
-    DB("update_net_wm_state_property from do_zoom\n");
+    DB("update_net_wm_state_property from do_zoom");
     [self update_net_wm_state_property];
 }
 
@@ -2324,7 +2324,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
         [self resize_frame:maximized_rect];
 
-        DB("update_net_wm_state_property from do_maximize\n");
+        DB("update_net_wm_state_property from do_maximize");
         [self update_net_wm_state_property];
     }
 }
@@ -2336,7 +2336,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) do_fullscreen:(BOOL) flag {
     X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
 
-    DB("id: 0x%x frame_id: 0x%x currently: %d requested: %d\n", _id, _frame_id, _fullscreen, flag);
+    DB("id: 0x%x frame_id: 0x%x currently: %d requested: %d", _id, _frame_id, _fullscreen, flag);
 
     if(flag) {
         _movable = NO;
@@ -2360,7 +2360,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     _fullscreen = flag;
 
-    DB("update_net_wm_state_property from do_fullscreen\n");
+    DB("update_net_wm_state_property from do_fullscreen");
     [self update_net_wm_state_property];
 }
 

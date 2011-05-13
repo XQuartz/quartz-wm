@@ -173,7 +173,7 @@ type:(const char *)type length:(int)length data:(const long *)data
             {
                 for (i = 0; i < _head_count; i++)
                 {
-                    DB("head %d: %d,%d %dx%d\n", i,
+                    DB("head %d: %d,%d %dx%d", i,
                        info[i].x_org, info[i].y_org,
                        info[i].width, info[i].height);
                     
@@ -183,7 +183,7 @@ type:(const char *)type length:(int)length data:(const long *)data
                     if (_screen_region == NULL) {
                         _screen_region = (X11Region *)malloc(sizeof(X11Region));
                         if(!_screen_region) {
-                            fprintf(stderr, "quartz-wm: Memory allocation error.\n");
+                            asl_log(aslc, NULL, ASL_LEVEL_ERR, "Memory allocation error.");
                             abort();
                         }
                         
@@ -221,7 +221,7 @@ type:(const char *)type length:(int)length data:(const long *)data
         _main_head = X11RectMake(_x, _y, _width, _height);
         _screen_region = (X11Region *)malloc(sizeof(X11Region));
         if(!_screen_region) {
-            fprintf(stderr, "quartz-wm: Memory allocation error.\n");
+            asl_log(aslc, NULL, ASL_LEVEL_ERR, "Memory allocation error.");
             abort();
         }
         pixman_region32_init_rect(_screen_region, _x, _y, _width, _height);
@@ -248,7 +248,7 @@ type:(const char *)type length:(int)length data:(const long *)data
         assert (nearest_i >= 0);
         _main_head = _heads[nearest_i];
         
-        DB("main head has index %d\n", nearest_i);
+        DB("main head has index %d", nearest_i);
     }
 }
 
@@ -383,7 +383,7 @@ window_level_less (const void *a, const void *b)
     
     [self update_geometry];
     
-    DB("%d, %dx%dx%d, root:%x, %d heads\n",
+    DB("%d, %dx%dx%d, root:%x, %d heads",
        id, _width, _height, _depth, _root, _head_count);
     
     XSelectInput (x_dpy, _root, X_ROOT_WINDOW_EVENTS);
@@ -460,7 +460,7 @@ window_level_less (const void *a, const void *b)
 {
     x_window *w;
     
-    DB("id: %x initializing: %s\n", id, flag ? "YES" : "NO");
+    DB("id: %x initializing: %s", id, flag ? "YES" : "NO");
     
     w = [[x_window alloc] init_with_id:id screen:self initializing:flag];
     
@@ -476,7 +476,7 @@ window_level_less (const void *a, const void *b)
 
 - (void) remove_window:(x_window *)w safe:(BOOL)safe
 {
-    DB("w:%x safe:%s\n", w->_id, safe ? "YES" : "NO");
+    DB("w:%x safe:%s", w->_id, safe ? "YES" : "NO");
     
 #ifdef CHECK_WINDOWS
     [self check_window_lists];
@@ -705,13 +705,13 @@ window_level_less (const void *a, const void *b)
     // Done with our screen_region_no_dock
     pixman_region32_fini(&screen_region_no_dock);
     
-    //e = pixman_region32_extents(&win_int);
-    //X11Rect win_int_rect = X11RectMake(e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
-    //fprintf(stderr, "dock_rect: %d,%d %dx%d\n", dock_rect.x, dock_rect.y, dock_rect.width, dock_rect.height);
-    //fprintf(stderr, "title_rect: %d,%d %dx%d\n", title_rect.x, title_rect.y, title_rect.width, title_rect.height);
-    //fprintf(stderr, "title_int_rect: %d,%d %dx%d\n", title_int_rect.x, title_int_rect.y, title_int_rect.width, title_int_rect.height);
-    //fprintf(stderr, "win_int_rect: %d,%d %dx%d\n", win_int_rect.x, win_int_rect.y, win_int_rect.width, win_int_rect.height);
-    //fprintf(stderr, "ret: %d,%d %dx%d\n", ret.x, ret.y, ret.width, ret.height);
+    e = pixman_region32_extents(&win_int);
+    X11Rect win_int_rect = X11RectMake(e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
+    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        dock_rect: %d,%d %dx%d", dock_rect.x, dock_rect.y, dock_rect.width, dock_rect.height);
+    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        title_rect: %d,%d %dx%d", title_rect.x, title_rect.y, title_rect.width, title_rect.height);
+    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        title_int_rect: %d,%d %dx%d", title_int_rect.x, title_int_rect.y, title_int_rect.width, title_int_rect.height);
+    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        win_int_rect: %d,%d %dx%d", win_int_rect.x, win_int_rect.y, win_int_rect.width, win_int_rect.height);
+    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        ret: %d,%d %dx%d", ret.x, ret.y, ret.width, ret.height);
     
     if (!pixman_region32_not_empty(&win_int)) {
         X11Region win_dock_int;
@@ -738,7 +738,7 @@ window_level_less (const void *a, const void *b)
                     ret.x = dock_rect.x - 40;
                     break;
                 default:
-                    fprintf(stderr, "Invalid response from DockGetOrientation()\n");
+                    asl_log(aslc, NULL, ASL_LEVEL_WARNING, "Invalid response from DockGetOrientation()");
                     break;
             }
         }

@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Apple Inc. All Rights Reserved.
+# Copyright (c) 2010-2011 Apple Inc. All Rights Reserved.
 #
 # @APPLE_LICENSE_HEADER_START@
 #
@@ -19,14 +19,15 @@
 #
 # @APPLE_LICENSE_HEADER_END@
 
-app_mandir = $(APP_MAN_DIR)
-app_man_PRE = quartz-wm.man
-app_man_DATA = $(app_man_PRE:man=@APP_MAN_SUFFIX@)
+appmandir = $(APP_MAN_DIR)
+appman_PRE = quartz-wm.man
+appman_DATA = $(appman_PRE:man=$(APP_MAN_SUFFIX))
 
+EXTRA_DIST = $(appman_PRE)
+CLEANFILES = $(appman_DATA)
 SUFFIXES = .$(APP_MAN_SUFFIX) .man
 
-.man.$(APP_MAN_SUFFIX):
-	cp $< $@
+MAN_SUBSTS += 	-e 's|__bundle_id_prefix__|$(BUNDLE_ID_PREFIX)|g'
 
-EXTRA_DIST = $(app_man_PRE)
-CLEANFILES = $(app_man_DATA)
+.man.$(APP_MAN_SUFFIX):
+	$(AM_V_GEN)$(SED) $(MAN_SUBSTS) < $< > $@

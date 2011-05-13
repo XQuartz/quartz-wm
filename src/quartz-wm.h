@@ -25,6 +25,8 @@
 #ifndef QUARTZ_WM_H
 #define QUARTZ_WM_H 1
 
+#include <asl.h>
+
 #import  <Foundation/Foundation.h>
 #include <CoreGraphics/CoreGraphics.h>
 
@@ -104,6 +106,7 @@ extern void x_release_window_shortcut (int x);
 extern id x_selection_object (void);
 extern Time x_current_timestamp (void);
 
+extern aslclient aslc;
 extern Display *x_dpy;
 extern unsigned int x_meta_mod;
 extern int x_shape_event_base, x_shape_error_base;

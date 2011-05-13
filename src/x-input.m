@@ -744,11 +744,11 @@ x_event_apple_wm_notify (XAppleWMNotifyEvent *e)
             if (e->kind >= 0 && e->kind < (int) (sizeof (controller_kinds)
                                                  / sizeof (controller_kinds[0])))
             {
-                DB("kind %s arg %d\n", controller_kinds[e->kind], e->arg);
+                DB("kind %s arg %d", controller_kinds[e->kind], e->arg);
             }
             else
             {
-                DB("kind %d arg %d\n", e->kind, e->arg);
+                DB("kind %d arg %d", e->kind, e->arg);
             }
 
             switch (e->kind)
@@ -808,11 +808,11 @@ x_event_apple_wm_notify (XAppleWMNotifyEvent *e)
             if (e->kind >= 0 && e->kind < (int) (sizeof (activation_kinds)
                                                  / sizeof (activation_kinds[0])))
             {
-                DB("kind %s arg %d\n", activation_kinds[e->kind], e->arg);
+                DB("kind %s arg %d", activation_kinds[e->kind], e->arg);
             }
             else
             {
-                DB("kind %d arg %d\n", e->kind, e->arg);
+                DB("kind %d arg %d", e->kind, e->arg);
             }
 
             switch (e->kind)
@@ -842,11 +842,11 @@ x_event_apple_wm_notify (XAppleWMNotifyEvent *e)
             if (e->kind >= 0 && e->kind < (int) (sizeof (pasteboard_kinds)
                                                  / sizeof (pasteboard_kinds[0])))
             {
-                DB("kind %s arg %d\n", pasteboard_kinds[e->kind], e->arg);
+                DB("kind %s arg %d", pasteboard_kinds[e->kind], e->arg);
             }
             else
             {
-                DB("kind %d arg %d\n", e->kind, e->arg);
+                DB("kind %d arg %d", e->kind, e->arg);
             }
 
             switch (e->kind)
@@ -918,7 +918,7 @@ x_input_run (void)
 
         XNextEvent (x_dpy, &e);
 
-        DB("<%s window:%x>\n", event_name (e.type), e.xany.window);
+        DB("<%s window:%x>", event_name (e.type), e.xany.window);
 
         switch (e.type)
         {

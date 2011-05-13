@@ -36,6 +36,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <assert.h>
 
 #include <X11/keysym.h>
 #include <X11/extensions/applewm.h>
@@ -74,13 +75,15 @@ BOOL rootless = YES;
 BOOL auto_quit = NO;
 int auto_quit_timeout = 3;   /* Seconds to wait before auto-quiting */
 
+aslclient aslc;
+
 XAppleWMSendPSNProcPtr _XAppleWMSendPSN;
 XAppleWMAttachTransientProcPtr _XAppleWMAttachTransient;
 
 /* X11 code */
 static void x_error_shutdown(void);
 
-static const char *app_prefs_domain = "org.x.X11";
+static const char *app_prefs_domain = BUNDLE_ID_PREFIX".X11";
 static CFStringRef app_prefs_domain_cfstr = NULL;
 
 void
@@ -112,7 +115,7 @@ x_ungrab_server (void)
 static int
 x_init_error_handler (Display *dpy, XErrorEvent *e)
 {
-    fprintf (stderr, "quartz-wm: another window manager is running; exiting\n");
+    asl_log(aslc, NULL, ASL_LEVEL_ERR, "another window manager is running; exiting");
     exit(EXIT_FAILURE);
 }
 
@@ -124,8 +127,8 @@ x_error_handler (Display *dpy, XErrorEvent *e)
 
     XGetErrorText (dpy, e->error_code, buf, sizeof (buf));
 
-    DB ("X Error: %s\n", buf);
-    DB ("  code:%d.%d resource:%x\n",
+    DB ("X Error: %s", buf);
+    DB ("  code:%d.%d resource:%x",
         e->request_code, e->minor_code, e->resourceid);
 
     if (e->resourceid == 0)
@@ -226,7 +229,7 @@ x_init (void)
     x_dpy = XOpenDisplay (NULL);
     if (x_dpy == NULL)
     {
-        fprintf (stderr, "quartz-wm: can't open default display\n");
+        asl_log(aslc, NULL, ASL_LEVEL_ERR, "can't open default display");
         exit(EXIT_FAILURE);
     }
 
@@ -297,14 +300,14 @@ x_init (void)
     if (!XShapeQueryExtension (x_dpy, &x_shape_event_base,
                                &x_shape_error_base))
     {
-        fprintf (stderr, "quartz-wm: can't open SHAPE server extension\n");
+        asl_log(aslc, NULL, ASL_LEVEL_ERR, "can't open SHAPE server extension");
         exit(EXIT_FAILURE);
     }
 
     if (!XAppleWMQueryExtension (x_dpy, &x_apple_wm_event_base,
                                  &x_apple_wm_error_base))
     {
-        fprintf (stderr, "quartz-wm: can't open AppleWM server extension\n");
+        asl_log(aslc, NULL, ASL_LEVEL_ERR, "can't open AppleWM server extension");
         exit(EXIT_FAILURE);
     }
 
@@ -347,7 +350,7 @@ x_init (void)
         for (i = 0; i < ScreenCount (x_dpy); i++) {
             x_screen *s = [[x_screen alloc] init_with_screen_id:i];
             if(s == nil) {
-                fprintf(stderr, "quartz-wm: Memory allocation error\n");
+                asl_log(aslc, NULL, ASL_LEVEL_ERR, "Memory allocation error");
                 exit(EXIT_FAILURE);
             }
 
@@ -770,7 +773,7 @@ static void start_auto_quit(void) {
     if(auto_quit_timer) {
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), auto_quit_timer, kCFRunLoopCommonModes);
     } else {
-        fprintf (stderr, "quartz-wm: couldn't create a shutdown timer, quitting now.\n");
+        asl_log(aslc, NULL, ASL_LEVEL_WARNING, "couldn't create a shutdown timer, quitting now.");
         x_shutdown();
     }
 }
@@ -934,6 +937,8 @@ int main (int argc, const char *argv[]) {
     NSAutoreleasePool *pool;
     int i;
     const char *s;
+    char *asl_facility;
+    uint32_t asl_opts;
 
     pool = [[NSAutoreleasePool alloc] init];
 
@@ -966,7 +971,7 @@ int main (int argc, const char *argv[]) {
                    "--only-proxy              Don't manage windows, just proxy pasteboard\n"
                    "--no-pasteboard           Don't proxy pasteboard, just manage windows\n"
                    "--prefs-domain <domain>   Change the domain used for reading preferences\n"
-                   "                          (default: org.x.X11)\n");
+                   "                          (default: "BUNDLE_ID_PREFIX".X11)\n");
             return 0;
         } else {
             fprintf(stderr, "usage: quartz-wm OPTIONS...\n"
@@ -984,6 +989,17 @@ int main (int argc, const char *argv[]) {
         return 1;
     }
 
+    asl_facility = strdup(app_prefs_domain);
+    assert(asl_facility);
+    if(strcmp(asl_facility + strlen(asl_facility) - 4, ".X11") == 0)
+        asl_facility[strlen(asl_facility) - 4] = '\0';
+
+    asl_opts = ASL_OPT_NO_DELAY;
+    if(getenv("DEBUG"))
+        asl_opts |= ASL_OPT_STDERR;
+
+    aslc = asl_open("quartz-wm", asl_facility, asl_opts);
+
     signal_handler_cb_init();
     DockInit(_only_proxy);
     x_init ();
@@ -999,7 +1015,7 @@ int main (int argc, const char *argv[]) {
         NS_HANDLER
         NSString *s = [NSString stringWithFormat:@"%@ - %@",
                        [localException name], [localException reason]];
-        fprintf(stderr, "quartz-wm: caught exception: %s\n", [s UTF8String]);
+        asl_log(aslc, NULL, ASL_LEVEL_ERR, "caught exception: %s", [s UTF8String]);
         NS_ENDHANDLER
     }
 
@@ -1134,22 +1150,8 @@ const char *str_for_atom(Atom atom) {
 void
 debug_printf (const char *fmt, ...)
 {
-    static int spew = -1;
-
-    if (spew == -1)
-    {
-        char *x = getenv ("DEBUG");
-        spew = (x != NULL && atoi (x) != 0);
-    }
-
-    if (spew)
-    {
-        va_list args;
-
-        va_start(args, fmt);
-
-        vfprintf (stderr, fmt, args);
-
-        va_end(args);
-    }
+    va_list args;
+    va_start(args, fmt);
+    asl_vlog(aslc, NULL, ASL_LEVEL_DEBUG, fmt, args);
+    va_end(args);
 }
