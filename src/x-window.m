@@ -493,6 +493,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     _screen = screen;
 
     _drawn_frame_decor = 0;
+    _current_frame = X11EmptyRect;
     
     _transient_for = NULL;
     _transient_for_id = _screen->_root;
@@ -530,8 +531,11 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     [self update_frame];
     XSetWindowBorderWidth (x_dpy, _id, 0);
 
-    /* Figure out our frame dimensions */
-    _current_frame = [self construct_frame_from_winrect:X11RectMake(_xattr.x, _xattr.y, _xattr.width, _xattr.height)];
+    /* Figure out our frame dimensions from XGetWindowAttributes if it wasn't
+     * set from other hints (fullscreen, maximized, etc)
+     */
+    if(X11RectEqualToRect(_current_frame, X11EmptyRect))
+    	_current_frame = [self construct_frame_from_winrect:X11RectMake(_xattr.x, _xattr.y, _xattr.width, _xattr.height)];
     _frame_height = _current_frame.height;
 
     [self reparent_in];
