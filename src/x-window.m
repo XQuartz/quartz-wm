@@ -588,6 +588,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
        _id, _frame_id, resized, r.x, r.y, r.width, r.height,
        _current_frame.x, _current_frame.y, _current_frame.width, _current_frame.height);
 
+    /* The window is not yet mapped, so just adjust _current_frame */
+    if(!_reparented) {
+        _current_frame = r;
+        return;
+    }
+    
     if (resized)
         [_screen disable_update];
 
