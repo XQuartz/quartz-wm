@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include <X11/keysym.h>
 #include <X11/extensions/applewm.h>
@@ -1147,6 +1148,31 @@ const char *str_for_atom(Atom atom) {
     return "(unknown atom)";
 }
 
+void debug_asl (const char *file, const char *function, int line, const char *fmt, ...) {
+    va_list args;
+    aslmsg msg = asl_new(ASL_TYPE_MSG);
+
+    if(msg) {
+        char *_line;
+
+        asl_set(msg, "File", file);
+        asl_set(msg, "Function", function);
+        asprintf(&_line, "%d", line);
+        if(_line) {
+            asl_set(msg, "Line", _line);
+            free(_line);
+        }
+    }
+
+    va_start(args, fmt);
+    asl_vlog(aslc, msg, ASL_LEVEL_DEBUG, fmt, args);
+    va_end(args);
+
+    if(msg)
+        asl_free(msg);
+}
+
+/* debug_printf is kept around for compatibility with older dock-support.o */
 void
 debug_printf (const char *fmt, ...)
 {
