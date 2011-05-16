@@ -31,7 +31,6 @@
 #include "frame.h"
 #import "x-screen.h"
 #import "x-window.h"
-#import "x-selection.h"
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -60,12 +59,6 @@ static x_window *_active_window;
 static BOOL _is_active = YES;		/* FIXME: should query server */
 
 static int _window_count;
-
-static x_selection *_selection_object;
-
-static BOOL _only_proxy = NO;
-static BOOL _force_proxy = NO;
-BOOL _proxy_pb  = YES;
 
 BOOL focus_follows_mouse = NO;
 BOOL focus_click_through = NO;
@@ -319,14 +312,6 @@ x_init (void)
 
     XAppleWMQueryVersion(x_dpy, &AppleWMMajorVersion, &AppleWMMinorVersion, &AppleWMPatchVersion);
 
-    if(!_force_proxy && (AppleWMMajorVersion > 1 || (AppleWMMajorVersion == 1 && AppleWMMinorVersion >= 1))) {
-        /* Server handles PB proxy */
-        _proxy_pb = NO;
-        if(_only_proxy) {
-            fprintf(stderr, "You asked quartz-wm to only proxy, but the server is already doing it.\nquartz-wm is not doing anything but waiting to be told to quit.\n");
-        }
-    }
-
     /* We do this with dlsym() to help support Codeweavers' wine which may
      * override libAppleWM with an older version of the library
      */
@@ -337,40 +322,32 @@ x_init (void)
     if(_XAppleWMSendPSN)
         _XAppleWMSendPSN(x_dpy);
 
-    applewm_mask = AppleWMActivationNotifyMask;
-    if(_proxy_pb)
-        applewm_mask |= AppleWMPasteboardNotifyMask;
-    if(!_only_proxy)
-        applewm_mask |= AppleWMControllerNotifyMask;
+    applewm_mask = AppleWMActivationNotifyMask | AppleWMControllerNotifyMask;
 
     XAppleWMSelectInput (x_dpy, applewm_mask);
-    if (!_only_proxy) {
-        XSync (x_dpy, False);
-        XSetErrorHandler (x_init_error_handler);
+    XSync (x_dpy, False);
+    XSetErrorHandler (x_init_error_handler);
 
-        for (i = 0; i < ScreenCount (x_dpy); i++) {
-            x_screen *s = [[x_screen alloc] init_with_screen_id:i];
-            if(s == nil) {
-                asl_log(aslc, NULL, ASL_LEVEL_ERR, "Memory allocation error");
-                exit(EXIT_FAILURE);
-            }
-
-            screen_list = x_list_prepend (screen_list, s);
+    for (i = 0; i < ScreenCount (x_dpy); i++) {
+        x_screen *s = [[x_screen alloc] init_with_screen_id:i];
+        if(s == nil) {
+            asl_log(aslc, NULL, ASL_LEVEL_ERR, "Memory allocation error");
+            exit(EXIT_FAILURE);
         }
 
-        XSync (x_dpy, False);
-        XSetErrorHandler (x_error_handler);
-
-        /* Let X11 quit without dialog box confirmation until we have a window */
-        XAppleWMSetCanQuit (x_dpy, True);
-
-        for (node = screen_list; node != NULL; node = node->next) {
-            x_screen *s = node->data;
-            [s adopt_windows];
-        }
+        screen_list = x_list_prepend (screen_list, s);
     }
 
-    _selection_object = [[x_selection alloc] init];
+    XSync (x_dpy, False);
+    XSetErrorHandler (x_error_handler);
+
+    /* Let X11 quit without dialog box confirmation until we have a window */
+    XAppleWMSetCanQuit (x_dpy, True);
+
+    for (node = screen_list; node != NULL; node = node->next) {
+        x_screen *s = node->data;
+        [s adopt_windows];
+    }
 
     x_input_register ();
     x_input_run ();
@@ -378,9 +355,6 @@ x_init (void)
 
 static void x_shutdown (void) {
     x_list *node;
-
-    [_selection_object release];
-    _selection_object = nil;
 
     for (node = screen_list; node != NULL; node = node->next) {
         x_screen *s = node->data;
@@ -406,12 +380,6 @@ static void x_error_shutdown (void) {
         [s error_shutdown];
     }
     exit(EXIT_FAILURE);
-}
-
-id
-x_selection_object (void)
-{
-    return _selection_object;
 }
 
 Time
@@ -957,20 +925,12 @@ int main (int argc, const char *argv[]) {
             setenv("DISPLAY", argv[++i], 1);
         } else if(strcmp (argv[i], "-display") == 0 && i+1 < argc) {
             setenv("DISPLAY", argv[++i], 1);
-        } else if (strcmp (argv[i], "--only-proxy") == 0) {
-            _only_proxy = YES;
-        } else if (strcmp (argv[i], "--force-proxy") == 0) {
-            _force_proxy = YES;
-        } else if (strcmp (argv[i], "--no-pasteboard") == 0) {
-            _proxy_pb = NO;
         } else if (strcmp (argv[i], "--synchronous") == 0) {
             _Xdebug = 1;
         } else if (strcmp (argv[i], "--help") == 0) {
             printf("usage: quartz-wm OPTIONS\n"
                    "Aqua window manager for X11.\n\n"
                    "--version                 Print the version string\n"
-                   "--only-proxy              Don't manage windows, just proxy pasteboard\n"
-                   "--no-pasteboard           Don't proxy pasteboard, just manage windows\n"
                    "--prefs-domain <domain>   Change the domain used for reading preferences\n"
                    "                          (default: "BUNDLE_ID_PREFIX".X11)\n");
             return 0;
@@ -985,11 +945,6 @@ int main (int argc, const char *argv[]) {
 
     prefs_read();
 
-    if(_only_proxy && !_proxy_pb) {
-        fprintf(stderr, "quartz-wm: You can't do both --only-proxy and --no-pasteboard at the same time.");
-        return 1;
-    }
-
     asl_facility = strdup(app_prefs_domain);
     assert(asl_facility);
     if(strcmp(asl_facility + strlen(asl_facility) - 4, ".X11") == 0)
@@ -1002,7 +957,7 @@ int main (int argc, const char *argv[]) {
     aslc = asl_open("quartz-wm", asl_facility, asl_opts);
 
     signal_handler_cb_init();
-    DockInit(_only_proxy);
+    DockInit(0);
     x_init ();
 
     signal (SIGINT, signal_handler);

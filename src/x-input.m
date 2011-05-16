@@ -28,7 +28,6 @@
 
 #include "quartz-wm.h"
 #import "x-screen.h"
-#import "x-selection.h"
 #import "x-window.h"
 #include "frame.h"
 #include "utils.h"
@@ -734,10 +733,6 @@ x_event_apple_wm_notify (XAppleWMNotifyEvent *e)
         "IsActive", "IsInactive", "ReloadPreferences"
     };
 
-    static const char *pasteboard_kinds[] = {
-        "CopyToPasteboard",
-    };
-
     switch (e->type - x_apple_wm_event_base)
     {
         case AppleWMControllerNotify:
@@ -820,39 +815,15 @@ x_event_apple_wm_notify (XAppleWMNotifyEvent *e)
             case AppleWMIsActive:
                 last_activation_time = e->time;
                 x_set_is_active (YES);
-
-                if (_proxy_pb)
-                    [x_selection_object () x_active:e->time];
                 break;
 
             case AppleWMIsInactive:
                 x_set_is_active (NO);
-
-                if (_proxy_pb)
-                    [x_selection_object () x_inactive:e->time];
                 break;
 
             case AppleWMReloadPreferences:
                 prefs_reload = YES;
                 break;
-        }
-            break;
-
-        case AppleWMPasteboardNotify:
-            if (e->kind >= 0 && e->kind < (int) (sizeof (pasteboard_kinds)
-                                                 / sizeof (pasteboard_kinds[0])))
-            {
-                DB("kind %s arg %d", pasteboard_kinds[e->kind], e->arg);
-            }
-            else
-            {
-                DB("kind %d arg %d", e->kind, e->arg);
-            }
-
-            switch (e->kind)
-        {
-            case AppleWMCopyToPasteboard:
-                [x_selection_object () x_copy:e->time];
         }
             break;
     }
@@ -982,18 +953,6 @@ x_input_run (void)
 
             case ColormapNotify:
                 x_event_colormap_notify (&e.xcolormap);
-                break;
-
-            case SelectionClear:
-                [x_selection_object () clear_event:&e.xselectionclear];
-                break;
-
-            case SelectionRequest:
-                [x_selection_object () request_event:&e.xselectionrequest];
-                break;
-
-            case SelectionNotify:
-                [x_selection_object () notify_event:&e.xselection];
                 break;
 
             case MappingNotify:

@@ -103,7 +103,6 @@ extern void x_activate_window_in_menu (int n, Time timestamp);
 extern void x_change_window_count (int delta);
 extern int x_allocate_window_shortcut (void);
 extern void x_release_window_shortcut (int x);
-extern id x_selection_object (void);
 extern Time x_current_timestamp (void);
 
 extern aslclient aslc;

@@ -45,8 +45,6 @@ quartz_wm_SOURCES = \
 	x-list.h \
 	x-screen.h \
 	x-screen.m \
-	x-selection.h \
-	x-selection.m \
 	x-window.h \
 	x-window.m \
 	x11-geometry.c \
