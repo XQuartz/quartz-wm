@@ -918,7 +918,7 @@ x_input_run (void)
 
         XNextEvent (x_dpy, &e);
 
-        DB("<%s window:%x>", event_name (e.type), e.xany.window);
+        DB("<%s window:%lx>", event_name (e.type), e.xany.window);
 
         switch (e.type)
         {

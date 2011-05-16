@@ -60,7 +60,7 @@ draw_frame (int screen, Window id, X11Rect outer_r, X11Rect inner_r,
                           &title_length);
     }
 
-    DB("id: 0x%d outer_r: (%d,%d %dx%d) inner_r: (%d,%d %dx%d) class: 0x%d attr: 0x%d title: %s",
+    DB("id: 0x%ld outer_r: (%d,%d %dx%d) inner_r: (%d,%d %dx%d) class: 0x%d attr: 0x%d title: %s",
        id, outer_r.x, outer_r.y, outer_r.width, outer_r.height,
        inner_r.x, inner_r.y, inner_r.width, inner_r.height, class, attr,
        title_length ? (char *)title_bytes : "(none)");

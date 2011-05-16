@@ -99,7 +99,7 @@ static const char *gravity_type(int gravity) {
 @implementation x_window
 
 #undef TRACE
-#define TRACE() DB("TRACE: id: 0x%x frame_id: 0x%x", _id, _frame_id)
+#define TRACE() DB("TRACE: id: 0x%lx frame_id: 0x%lx", _id, _frame_id)
 
 #define DISABLE_EVENTS(wid, mask)				\
 do {							\
@@ -586,7 +586,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     resized = !(_current_frame.width == r.width && _current_frame.height == r.height);
 
-    DB("id: 0x%x frame_id: 0x%x resized: %d r:(%d,%d %dx%d) current_frame:(%d,%d %dx%d)",
+    DB("id: 0x%lx frame_id: 0x%lx resized: %d r:(%d,%d %dx%d) current_frame:(%d,%d %dx%d)",
        _id, _frame_id, resized, r.x, r.y, r.width, r.height,
        _current_frame.x, _current_frame.y, _current_frame.width, _current_frame.height);
 
@@ -624,7 +624,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) resize_frame:(X11Rect)r force:(BOOL)flag {
     X11Rect fr;
 
-    DB("id: 0x%x frame_id: 0x%x rect:(%d,%d %dx%d) force:%d", _id, _frame_id,
+    DB("id: 0x%lx frame_id: 0x%lx rect:(%d,%d %dx%d) force:%d", _id, _frame_id,
        r.x, r.y, r.width, r.height, flag);
 
     fr = r;
@@ -975,7 +975,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         if (x_get_property (id, atoms.native_window_id, &data, 1, 1))
             _osx_id = (OSXWindowID) data;
 
-        DB("Window 0x%x with frame 0x%x has a new _osx_id: %u", _id, _frame_id, _osx_id);
+        DB("Window 0x%lx with frame 0x%lx has a new _osx_id: %u", _id, _frame_id, _osx_id);
     }
 
     return _osx_id;
@@ -1602,7 +1602,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if(_reparented) {
         xp_frame_class pending_frame_decor = [self get_xp_frame_class] & XP_FRAME_CLASS_DECOR_MASK;
         
-        DB("id: 0x%x frame_id: 0x%x old decor: 0x%x new decor: 0x%x%s", _id,
+        DB("id: 0x%lx frame_id: 0x%lx old decor: 0x%x new decor: 0x%x%s", _id,
            _frame_id, _drawn_frame_decor, pending_frame_decor,
            (pending_frame_decor == _drawn_frame_decor) ? "" : " FRAME CHANGE");
 
@@ -2336,7 +2336,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) do_fullscreen:(BOOL) flag {
     X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
 
-    DB("id: 0x%x frame_id: 0x%x currently: %d requested: %d", _id, _frame_id, _fullscreen, flag);
+    DB("id: 0x%lx frame_id: 0x%lx currently: %d requested: %d", _id, _frame_id, _fullscreen, flag);
 
     if(flag) {
         _movable = NO;

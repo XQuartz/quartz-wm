@@ -129,7 +129,7 @@ x_error_handler (Display *dpy, XErrorEvent *e)
     XGetErrorText (dpy, e->error_code, buf, sizeof (buf));
 
     DB ("X Error: %s", buf);
-    DB ("  code:%d.%d resource:%x",
+    DB ("  code:%d.%d resource:%lx",
         e->request_code, e->minor_code, e->resourceid);
 
     if (e->resourceid == 0)

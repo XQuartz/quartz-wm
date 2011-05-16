@@ -383,7 +383,7 @@ window_level_less (const void *a, const void *b)
     
     [self update_geometry];
     
-    DB("%d, %dx%dx%d, root:%x, %d heads",
+    DB("%d, %dx%dx%d, root:%lx, %d heads",
        id, _width, _height, _depth, _root, _head_count);
     
     XSelectInput (x_dpy, _root, X_ROOT_WINDOW_EVENTS);
@@ -460,7 +460,7 @@ window_level_less (const void *a, const void *b)
 {
     x_window *w;
     
-    DB("id: %x initializing: %s", id, flag ? "YES" : "NO");
+    DB("id: %lx initializing: %s", id, flag ? "YES" : "NO");
     
     w = [[x_window alloc] init_with_id:id screen:self initializing:flag];
     
@@ -476,7 +476,7 @@ window_level_less (const void *a, const void *b)
 
 - (void) remove_window:(x_window *)w safe:(BOOL)safe
 {
-    DB("w:%x safe:%s", w->_id, safe ? "YES" : "NO");
+    DB("w:%lx safe:%s", w->_id, safe ? "YES" : "NO");
     
 #ifdef CHECK_WINDOWS
     [self check_window_lists];
