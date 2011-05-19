@@ -195,6 +195,6 @@ extern void debug_asl (const char *file, const char *function, int line, const c
 extern const char *str_for_atom(Atom atom);
 
 #define DB(msg, args...) debug_asl(__FILE__, __FUNCTION__, __LINE__, msg, ##args);
-#define TRACE() DB("TRACE\n")
+#define TRACE() DB("TRACE")
 
 #endif /* QUARTZ_WM_H */
