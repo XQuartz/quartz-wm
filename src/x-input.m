@@ -61,7 +61,7 @@ static struct {
     unsigned dragging :1;
     unsigned clicking :1;
     unsigned resizing :1;
-} pointer;
+} pointer_state;
 
 /* Timestamp when the X server last told us it's active */
 static Time last_activation_time;
@@ -195,23 +195,23 @@ x_event_button (XButtonEvent *e)
                 /* First button press */
 
                 /* FIXME: wrap around? */
-                if (e->time - pointer.down_time < DOUBLE_CLICK_TIME)
-                    pointer.click_count++;
+                if (e->time - pointer_state.down_time < DOUBLE_CLICK_TIME)
+                    pointer_state.click_count++;
                 else
-                    pointer.click_count = 1;
+                    pointer_state.click_count = 1;
 
-                pointer.down_location.x = e->x_root;
-                pointer.down_location.y = e->y_root;
-                pointer.down_id = e->window;
-                pointer.down_time = e->time;
-                pointer.down_attrs = [w hit_test_frame:p];
+                pointer_state.down_location.x = e->x_root;
+                pointer_state.down_location.y = e->y_root;
+                pointer_state.down_id = e->window;
+                pointer_state.down_time = e->time;
+                pointer_state.down_attrs = [w hit_test_frame:p];
 
-                if ((pointer.down_attrs
+                if ((pointer_state.down_attrs
                      & (w->_frame_attr & XP_FRAME_ATTRS_ANY_BUTTON)) != 0)
                 {
-                    pointer.clicking = YES;
+                    pointer_state.clicking = YES;
                     XP_FRAME_ATTR_SET_CLICKED (w->_frame_attr,
-                                               pointer.down_attrs
+                                               pointer_state.down_attrs
                                                & XP_FRAME_ATTRS_ANY_BUTTON);
                 }
                 else
@@ -226,19 +226,19 @@ x_event_button (XButtonEvent *e)
             {
                 /* Releasing last button */
 
-                if (pointer.dragging)
+                if (pointer_state.dragging)
                 {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
                     DockDragEnd([w get_osx_id]);
 #endif
-                    pointer.dragging = NO;
+                    pointer_state.dragging = NO;
                 }
-                else if (pointer.resizing)
+                else if (pointer_state.resizing)
                 {
-                    pointer.resizing = NO;
+                    pointer_state.resizing = NO;
                     [w remove_resizing_title];
                 }
-                else if (pointer.clicking)
+                else if (pointer_state.clicking)
                 {
                     unsigned int attrs;
 
@@ -246,7 +246,7 @@ x_event_button (XButtonEvent *e)
                     attrs = [w hit_test_frame:p];
 
                     /* Only if it went pressed the same button it came released on */
-                    attrs &= pointer.down_attrs;
+                    attrs &= pointer_state.down_attrs;
 
                     if (attrs & XP_FRAME_ATTR_CLOSE_BOX)
                         [w do_close:e->time];
@@ -263,9 +263,9 @@ x_event_button (XButtonEvent *e)
                     w->_frame_attr &= ~XP_FRAME_ATTR_PRELIGHT;
                     w->_frame_attr |= attrs & XP_FRAME_ATTR_PRELIGHT;
 
-                    pointer.clicking = NO;
+                    pointer_state.clicking = NO;
                 }
-                else if (pointer.click_count == 2)
+                else if (pointer_state.click_count == 2)
                 {
                     if (w->_shadable && window_shading)
                         [w do_toggle_shaded:e->time];
@@ -273,7 +273,7 @@ x_event_button (XButtonEvent *e)
                         [w do_collapse];
                 }
 
-                pointer.down_id = 0;
+                pointer_state.down_id = 0;
             }
         }
 
@@ -319,22 +319,22 @@ x_event_motion_notify (XMotionEvent *e)
             if (buttons_pressed (e->state) == 0)
             {
                 /* We must have missed the button-release */
-                if(pointer.dragging) {
+                if(pointer_state.dragging) {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
                     DockDragEnd([w get_osx_id]);
 #endif
-                    pointer.dragging = NO;
+                    pointer_state.dragging = NO;
                 }
-                if (pointer.resizing) {
-                    pointer.resizing = NO;
+                if (pointer_state.resizing) {
+                    pointer_state.resizing = NO;
                     [w remove_resizing_title];
                 }
             }
 
-            if (pointer.dragging)
+            if (pointer_state.dragging)
             {
             do_drag:
-                r = X11RectMake(p.x + pointer.offset.x, p.y + pointer.offset.y,
+                r = X11RectMake(p.x + pointer_state.offset.x, p.y + pointer_state.offset.y,
                                 w->_current_frame.width, w->_current_frame.height);
                 r = [w->_screen validate_window_position:r titlebar_height:w->_frame_title_height];
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
@@ -342,12 +342,12 @@ x_event_motion_notify (XMotionEvent *e)
 #endif
                 [w resize_frame:r];
             }
-            else if (pointer.resizing)
+            else if (pointer_state.resizing)
             {
             do_resize:
                 r = X11RectMake(w->_current_frame.x, w->_current_frame.y,
-                                pointer.offset.x + (p.x - pointer.down_location.x),
-                                pointer.offset.y + (p.y - pointer.down_location.y));
+                                pointer_state.offset.x + (p.x - pointer_state.down_location.x),
+                                pointer_state.offset.y + (p.y - pointer_state.down_location.y));
                 if (r.width > 0 && r.height > 0)
                 {
                     r = [w validate_frame_rect:r from_user:YES];
@@ -355,12 +355,12 @@ x_event_motion_notify (XMotionEvent *e)
                     [w set_resizing_title:r];
                 }
             }
-            else if (pointer.clicking)
+            else if (pointer_state.clicking)
             {
                 attrs = [w hit_test_frame:wp];
 
                 if ((attrs & XP_FRAME_ATTRS_ANY_BUTTON)
-                    != (pointer.down_attrs & XP_FRAME_ATTRS_ANY_BUTTON))
+                    != (pointer_state.down_attrs & XP_FRAME_ATTRS_ANY_BUTTON))
                 {
                     /* Moved off the button we clicked on, change its state. */
 
@@ -369,7 +369,7 @@ x_event_motion_notify (XMotionEvent *e)
                 else
                 {
                     XP_FRAME_ATTR_SET_CLICKED (w->_frame_attr,
-                                               pointer.down_attrs
+                                               pointer_state.down_attrs
                                                & XP_FRAME_ATTRS_ANY_BUTTON);
                 }
             }
@@ -378,21 +378,21 @@ x_event_motion_notify (XMotionEvent *e)
                 /* See if we moved far enough to start dragging the window. */
 
                 if ((e->state & BUTTON_MASK) != 0
-                    && point_distance (pointer.down_location, p) >= DRAG_THRESHOLD)
+                    && point_distance (pointer_state.down_location, p) >= DRAG_THRESHOLD)
                 {
                     if (e->window == w->_growbox_id)
                     {
-                        pointer.offset.x = w->_current_frame.width;
-                        pointer.offset.y = w->_current_frame.height;
-                        pointer.resizing = YES;
+                        pointer_state.offset.x = w->_current_frame.width;
+                        pointer_state.offset.y = w->_current_frame.height;
+                        pointer_state.resizing = YES;
                         goto do_resize;
                     }
                     else if (e->window == w->_frame_id
                              && w->_movable && e->subwindow == None)
                     {
-                        pointer.offset.x = w->_current_frame.x - pointer.down_location.x;
-                        pointer.offset.y = w->_current_frame.y - pointer.down_location.y;
-                        pointer.dragging = YES;
+                        pointer_state.offset.x = w->_current_frame.x - pointer_state.down_location.x;
+                        pointer_state.offset.y = w->_current_frame.y - pointer_state.down_location.y;
+                        pointer_state.dragging = YES;
                         goto do_drag;
                     }
                 }
@@ -558,7 +558,7 @@ x_event_crossing (XCrossingEvent *e)
 
     if (e->window == w->_tracking_id)
     {
-        if (pointer.clicking)
+        if (pointer_state.clicking)
             return;
 
         if (e->type == EnterNotify)
