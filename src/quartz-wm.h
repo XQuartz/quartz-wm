@@ -25,14 +25,15 @@
 #ifndef QUARTZ_WM_H
 #define QUARTZ_WM_H 1
 
+#define Cursor OSX_Cursor
+#define Picture OSX_Picture
 #import  <Foundation/Foundation.h>
-#include <CoreGraphics/CoreGraphics.h>
+#undef Picture
+#undef Cursor
 
-#define  Cursor X_Cursor
 #undef _SHAPE_H_
 #include <X11/Xlib.h>
 #include <X11/extensions/shape.h>
-#undef   Cursor
 
 #include "x-list.h"
 #include "x11-geometry.h"
