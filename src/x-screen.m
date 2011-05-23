@@ -151,7 +151,9 @@ type:(const char *)type length:(int)length data:(const long *)data
     
     _width = WidthOfScreen (_screen);
     _height = HeightOfScreen (_screen);
-    
+
+    DB("Screen: %dx%d", _width, _height);    
+
     /* Release the region we had before */
     if(_screen_region != NULL) {
         pixman_region32_fini(_screen_region);
@@ -702,17 +704,20 @@ window_level_less (const void *a, const void *b)
     title_int_rect = X11RectMake(e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
     pixman_region32_fini(&title_int);
     
+    DB("        win_rect: %d,%d %dx%d", win_rect.x, win_rect.y, win_rect.width, win_rect.height);
+    DB("        dock_rect: %d,%d %dx%d", dock_rect.x, dock_rect.y, dock_rect.width, dock_rect.height);
+    e = pixman_region32_extents(_screen_region);
+    DB("        screen_rect: %d,%d %dx%d", e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
+    e = pixman_region32_extents(&screen_region_no_dock);
+    DB("        screen_no_dock: %d,%d %dx%d", e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
+    DB("        title_rect: %d,%d %dx%d", title_rect.x, title_rect.y, title_rect.width, title_rect.height);
+    DB("        title_int_rect: %d,%d %dx%d", title_int_rect.x, title_int_rect.y, title_int_rect.width, title_int_rect.height);
+    e = pixman_region32_extents(&win_int);
+    DB("        win_int_rect: %d,%d %dx%d", e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
+
     // Done with our screen_region_no_dock
     pixman_region32_fini(&screen_region_no_dock);
-    
-    e = pixman_region32_extents(&win_int);
-    X11Rect win_int_rect = X11RectMake(e->x1, e->y1, e->x2 - e->x1, e->y2 - e->y1);
-    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        dock_rect: %d,%d %dx%d", dock_rect.x, dock_rect.y, dock_rect.width, dock_rect.height);
-    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        title_rect: %d,%d %dx%d", title_rect.x, title_rect.y, title_rect.width, title_rect.height);
-    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        title_int_rect: %d,%d %dx%d", title_int_rect.x, title_int_rect.y, title_int_rect.width, title_int_rect.height);
-    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        win_int_rect: %d,%d %dx%d", win_int_rect.x, win_int_rect.y, win_int_rect.width, win_int_rect.height);
-    asl_log(aslc, NULL, ASL_LEVEL_DEBUG, "        ret: %d,%d %dx%d", ret.x, ret.y, ret.width, ret.height);
-    
+
     if (!pixman_region32_not_empty(&win_int)) {
         X11Region win_dock_int;
         
@@ -790,6 +795,7 @@ window_level_less (const void *a, const void *b)
     pixman_region32_fini(&title_region);
     pixman_region32_fini(&dock_region);
     
+    DB("        ret: %d,%d %dx%d", ret.x, ret.y, ret.width, ret.height);
     return ret;
 }
 
@@ -831,15 +837,18 @@ static inline BOOL MyNSPointInRect(NSPoint p, NSRect r) {
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     NSEnumerator *screenEnumerator;
 #endif
-    
+    X11Rect ret;
+
     /* If the server is in rootless mode, we need to trim off the menu bar and dock */
     if(!rootless) {
         /* We need to jump out early here becasue of:
          * <rdar://problem/6395220> [NSScreen visibleFrame] subtracts dock and menubar even when hidden by another app
          */
-        return [self head_containing_point:xp];
+        ret = [self head_containing_point:xp];
+        DB("ret: (%d,%d %dx%d)", ret.x, ret.y, ret.width, ret.height);
+        return ret;
     }
-    
+
     nsp = [self X11ToNSPoint:xp];
     NSvisibleFrame = [[NSScreen mainScreen] visibleFrame];
     
@@ -856,7 +865,9 @@ static inline BOOL MyNSPointInRect(NSPoint p, NSRect r) {
         }
     }
     
-    return [self NSToX11Rect:NSvisibleFrame];
+    ret = [self NSToX11Rect:NSvisibleFrame];
+    DB("ret: (%d,%d %dx%d)", ret.x, ret.y, ret.width, ret.height);
+    return ret;
 }
 
 - (X11Rect) zoomed_rect

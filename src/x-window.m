@@ -2472,6 +2472,9 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
 
     decode_size_hints (&_size_hints, base, min, max, inc);
 
+    DB("w1: %d base: %d min: %d max: %d inc: %d", r.width, base[0], min[0], max[0], inc[0]);
+    DB("h1: %d base: %d min: %d max: %d inc: %d", r.height, base[1], min[1], max[1], inc[1]);
+
     if (!uflag)
     {
         X11Size s;
@@ -2481,6 +2484,8 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
             s = X11RectSize([_screen zoomed_rect:X11RectOrigin(r)]);
         else
             s = X11SizeMake(_screen->_width, _screen->_height);
+
+        DB("limit_window_size: %d s: %dx%d", limit_window_size, s.width, s.height);
 
         // _frame_border_width
         max[0] = (max[0] > 0 ? MIN (max[0], s.width)
@@ -2498,6 +2503,9 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
                            min[0], max[0], inc[0]);
     r.height = constrain_1 (r.height, base[1],
                             min[1], max[1], inc[1]);
+
+    DB("w2: %d base: %d min: %d max: %d inc: %d", r.width, base[0], min[0], max[0], inc[0]);
+    DB("h2: %d base: %d min: %d max: %d inc: %d", r.height, base[1], min[1], max[1], inc[1]);
 
     r.width = MAX (72, r.width);
     r.height = MAX (16, r.height);
@@ -2522,10 +2530,13 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
                       from_user:(BOOL)uflag constrain:(BOOL)cflag
 {
     X11Size s;
+
     r.height -= _frame_title_height;
     s = [self validate_window_size:r from_user:uflag constrain:cflag];
     r.width = s.width;
     r.height = s.height + _frame_title_height;
+
+    DB("r:(%d,%d %dx%d)", r.x, r.y, r.width, r.height);
     return [_screen validate_window_position:r titlebar_height:_frame_title_height];
 }
 
