@@ -113,17 +113,36 @@ x_init_error_handler (Display *dpy, XErrorEvent *e)
     exit(EXIT_FAILURE);
 }
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
+
 static int
 x_error_handler (Display *dpy, XErrorEvent *e)
 {
-    char buf[256];
+    char bufferA[512];
+    char bufferB[512];
     x_window *w;
 
-    XGetErrorText (dpy, e->error_code, buf, sizeof (buf));
+    XGetErrorText(dpy, e->error_code, bufferB, sizeof(bufferB));
+    XGetErrorDatabaseText(dpy, "XlibMessage", "XError", "X Error", bufferA, sizeof(bufferA));
+    DB ("%s: %s", bufferA, bufferB);
 
-    DB ("X Error: %s", buf);
-    DB ("  code:%d.%d resource:%lx",
-        e->request_code, e->minor_code, e->resourceid);
+    XGetErrorDatabaseText(dpy, "XlibMessage", "MajorCode", "Request Major code %d", bufferB, sizeof(bufferB));
+    snprintf(bufferA, sizeof(bufferA), bufferB, e->request_code);
+
+    if (e->request_code < 128) {
+        char number[32];
+        sprintf(number, "%d", e->request_code);
+        XGetErrorDatabaseText(dpy, "XRequest", number, "", bufferB, sizeof(bufferB));
+        DB("%s (%s)", bufferA, bufferB);
+    } else {
+        DB("%s", bufferA);
+
+        XGetErrorDatabaseText(dpy, "XlibMessage", "MinorCode", "Request Minor code %d", bufferA, sizeof(bufferA));
+        DB(bufferA, e->minor_code);
+    }
 
     if (e->resourceid == 0)
         return 0;
@@ -138,6 +157,10 @@ x_error_handler (Display *dpy, XErrorEvent *e)
 
     return 0;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 void
 x_update_meta_modifier (void)
