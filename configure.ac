@@ -37,7 +37,7 @@ AC_PROG_OBJC
 AC_PROG_INSTALL
 
 # Checks for pkg-config packages
-PKG_CHECK_MODULES(QUARTZWM, [applewm >= 1.4] pixman-1 x11 xext xinerama)
+PKG_CHECK_MODULES(QUARTZWM, [applewm >= 1.4] pixman-1 x11 xext xinerama xrandr)
 AC_SUBST(QUARTZWM_CFLAGS)
 AC_SUBST(QUARTZWM_LIBS)
 
