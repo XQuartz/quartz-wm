@@ -39,6 +39,7 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/extensions/applewm.h>
+#include <X11/extensions/Xrandr.h>
 
 #include <unistd.h>
 
@@ -602,6 +603,10 @@ x_event_configure_notify (XConfigureEvent *e)
 
         if (s != nil)
         {
+            if(!XRRUpdateConfiguration((XEvent *)e)) {
+                fprintf(stderr, "XRRUpdateConfiguration failed.");
+            }
+
             [s update_geometry];
             [s foreach_window:@selector (validate_position)];
         }
