@@ -36,7 +36,7 @@
 
 #include "x11-geometry.h"
 
-#if XPLUGIN_VERSION < 4
+#if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION < 4
 #warning "Old libXplugin version detected.  Some features may not be supported."
 
 typedef enum xp_frame_class_enum xp_frame_class;
