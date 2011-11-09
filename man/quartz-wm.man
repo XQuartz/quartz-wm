@@ -34,8 +34,6 @@
 .Nd Aqua Window Manager for the X Window System on OS X
 .Sh SYNOPSIS
 .Nm
-.Op Fl -only-proxy
-.Op Fl -no-pasteboard 
 .Op Fl -prefs-domain Ar domain
 .Sh DESCRIPTION
 .Nm
