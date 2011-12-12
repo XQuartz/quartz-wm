@@ -116,7 +116,7 @@ list_next (x_list *lst, void *item)
 }
 
 static void
-next_window (Time time, Bool reversed)
+next_window (Time timestamp, Bool reversed)
 {
     x_window *w, *x;
     x_list *lst;
@@ -134,7 +134,7 @@ next_window (Time time, Bool reversed)
         while (x != nil && x != w && x->_minimized)
             x = list_next (lst, x);
 
-        [x activate:time];
+        [x activate:timestamp];
 
         x_list_free (lst);
     }

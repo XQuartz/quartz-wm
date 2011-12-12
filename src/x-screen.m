@@ -410,7 +410,7 @@ window_level_less (const void *a, const void *b)
 
 - (void) net_wm_init
 {
-    long data, *atoms;
+    long data, *supported_atoms;
     
     if (_net_wm_window != 0)
         return;
@@ -429,13 +429,13 @@ window_level_less (const void *a, const void *b)
                            type:"WINDOW" length:1 data:&data];
         
         n = sizeof (net_wm_supported) / sizeof (net_wm_supported[0]);
-        atoms = alloca (n * sizeof (long));
+        supported_atoms = alloca (n * sizeof (long));
         
         for (i = 0; i < n; i++)
-            atoms[i] = XInternAtom (x_dpy, net_wm_supported[i], False);
+            supported_atoms[i] = XInternAtom (x_dpy, net_wm_supported[i], False);
         
         [self set_root_property:"_NET_SUPPORTED"
-                           type:"ATOM" length:n data:atoms];
+                           type:"ATOM" length:n data:supported_atoms];
     }
 }
 

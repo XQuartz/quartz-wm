@@ -81,14 +81,14 @@ static const char *app_prefs_domain = BUNDLE_ID_PREFIX".X11";
 static CFStringRef app_prefs_domain_cfstr = NULL;
 
 void
-x_grab_server (Bool sync)
+x_grab_server (Bool do_sync)
 {
     if (x_grab_count++ == 0)
     {
         XGrabServer (x_dpy);
     }
 
-    if (sync && !x_grab_synced)
+    if (do_sync && !x_grab_synced)
     {
         XSync (x_dpy, False);
         x_grab_synced = True;
@@ -992,9 +992,9 @@ int main (int argc, const char *argv[]) {
         NS_DURING
         CFRunLoopRun ();
         NS_HANDLER
-        NSString *s = [NSString stringWithFormat:@"%@ - %@",
-                       [localException name], [localException reason]];
-        asl_log(aslc, NULL, ASL_LEVEL_ERR, "caught exception: %s", [s UTF8String]);
+        NSString *str = [NSString stringWithFormat:@"%@ - %@",
+                         [localException name], [localException reason]];
+        asl_log(aslc, NULL, ASL_LEVEL_ERR, "caught exception: %s", [str UTF8String]);
         NS_ENDHANDLER
     }
 

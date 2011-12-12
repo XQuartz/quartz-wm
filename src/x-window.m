@@ -1863,7 +1863,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     x_list_free (order);
 }
 
-- (BOOL) focus:(Time)timestamp raise:(BOOL)raise force:(BOOL)force
+- (BOOL) focus:(Time)timestamp raise:(BOOL)do_raise force:(BOOL)force
 {
     BOOL changed;
 
@@ -1872,7 +1872,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (_removed)
         return NO;
 
-    if (raise)
+    if (do_raise)
     {
         if (x_get_is_active ())
             [self raise];
@@ -1913,9 +1913,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     return changed;
 }
 
-- (BOOL) focus:(Time)timestamp raise:(BOOL)raise
+- (BOOL) focus:(Time)timestamp raise:(BOOL)do_raise
 {
-    return [self focus:timestamp raise:raise force:NO];
+    return [self focus:timestamp raise:do_raise force:NO];
 }
 
 - (BOOL) focus:(Time)timestamp

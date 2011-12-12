@@ -81,7 +81,7 @@
 extern x_list *screen_list;
 extern BOOL focus_follows_mouse, focus_click_through, limit_window_size, focus_on_new_window, window_shading, rootless, auto_quit;
 extern int auto_quit_timeout;
-extern void x_grab_server (Bool sync);
+extern void x_grab_server (Bool do_sync);
 extern void x_ungrab_server (void);
 extern void x_update_meta_modifier (void);
 extern void x_update_keymap (void);
