@@ -31,8 +31,8 @@
 #include <X11/Xlib.h>
 #undef   Cursor
 
-extern int x_get_property (Window id, Atom atom, long *dest,
+extern int x_get_property (Window xwindow_id, Atom atom, long *dest,
                            unsigned int dest_size, unsigned int min_items);
-extern NSString *x_get_string_property (Window id, Atom atom);
+extern NSString *x_get_string_property (Window xwindow_id, Atom atom);
 
 #endif /* UTILS_H */

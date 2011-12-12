@@ -72,7 +72,7 @@
 - (void) focus_topmost:(Time)timestamp;
 - (x_list *) stacking_order:(x_list *)group;
 - (void) raise_windows:(id *)array count:(size_t)n;
-- (void) adopt_window:(Window)id initializing:(BOOL)flag;
+- (void) adopt_window:(Window)xwindow_id initializing:(BOOL)flag;
 - (void) remove_window:(x_window *)w safe:(BOOL)safe;
 - (void) remove_window:(x_window *)w;
 - (void) remove_callback:(NSTimer *)timer;
@@ -80,7 +80,7 @@
 - (void) adopt_windows;
 - (void) unadopt_windows;
 - (void) error_shutdown;
-- get_window:(Window)id;
+- get_window:(Window)xwindow_id;
 - get_window_by_osx_id:(OSXWindowID)id;
 - (X11Rect) validate_window_position:(X11Rect)r titlebar_height:(size_t)titlebar_height;
 - (X11Rect) zoomed_rect:(X11Point)p;

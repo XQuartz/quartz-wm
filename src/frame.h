@@ -67,7 +67,7 @@ typedef enum xp_frame_attr_enum xp_frame_attr;
 #define XP_FRAME_ATTRS_POINTER XP_FRAME_POINTER_ATTRS
 #endif
 
-extern void draw_frame (int screen, Window id, X11Rect outer_r,
+extern void draw_frame (int screen, Window xwindow_id, X11Rect outer_r,
                         X11Rect inner_r, xp_frame_class class,
                         xp_frame_attr attr, CFStringRef title);
 extern int frame_titlebar_height (xp_frame_class class);

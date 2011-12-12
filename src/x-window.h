@@ -143,7 +143,7 @@
 - (void) reparent_in;
 - (void) reparent_out;
 - (void) send_configure;
-- init_with_id:(Window)id screen:screen initializing:(BOOL)flag;
+- init_with_id:(Window)xwindow_id screen:screen initializing:(BOOL)flag;
 - (void) resize_frame:(X11Rect)r;
 - (void) report_frame_size:(X11Rect)r;
 - (void) resize_client:(X11Rect)r;

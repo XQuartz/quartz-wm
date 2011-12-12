@@ -108,16 +108,16 @@ static void *check_window (void *w, void *data)
 #endif
 
 static inline BOOL
-adoptable (Window id)
+adoptable (Window xwindow_id)
 {
     XWindowAttributes attr;
     
-    XGetWindowAttributes (x_dpy, id, &attr);
+    XGetWindowAttributes (x_dpy, xwindow_id, &attr);
     
     return attr.map_state != IsUnmapped && attr.override_redirect != True;
 }
 
-- (void) set_property:(Window)id name:(const char *)name
+- (void) set_property:(Window)xwindow_id name:(const char *)name
 type:(const char *)type length:(int)length data:(const long *)data
 {
     Atom name_atom, type_atom;
@@ -125,7 +125,7 @@ type:(const char *)type length:(int)length data:(const long *)data
     name_atom = XInternAtom (x_dpy, name, False);
     type_atom = XInternAtom (x_dpy, type, False);
     
-    XChangeProperty (x_dpy, id, name_atom, type_atom, 32,
+    XChangeProperty (x_dpy, xwindow_id, name_atom, type_atom, 32,
                      PropModeReplace, (unsigned char *) data, length);
 }
 
@@ -369,13 +369,13 @@ window_level_less (const void *a, const void *b)
     [self update_net_client_list_stacking];
 }
 
-- init_with_screen_id:(int)id
+- init_with_screen_id:(int)xscreen_id
 {
     self = [super init];
     if (self == nil)
         return nil;
     
-    _id = id;
+    _id = xscreen_id;
     _screen = ScreenOfDisplay (x_dpy, _id);
     _root = RootWindowOfScreen (_screen);
     _depth = DefaultDepthOfScreen (_screen);
@@ -386,7 +386,7 @@ window_level_less (const void *a, const void *b)
     [self update_geometry];
     
     DB("%d, %dx%dx%d, root:%lx, %d heads",
-       id, _width, _height, _depth, _root, _head_count);
+       xscreen_id, _width, _height, _depth, _root, _head_count);
     
     XSelectInput (x_dpy, _root, X_ROOT_WINDOW_EVENTS);
     
@@ -458,13 +458,13 @@ window_level_less (const void *a, const void *b)
     }
 }
 
-- (void) adopt_window:(Window)id initializing:(BOOL)flag
+- (void) adopt_window:(Window)xwindow_id initializing:(BOOL)flag
 {
     x_window *w;
     
-    DB("id: %lx initializing: %s", id, flag ? "YES" : "NO");
+    DB("id: %lx initializing: %s", xwindow_id, flag ? "YES" : "NO");
     
-    w = [[x_window alloc] init_with_id:id screen:self initializing:flag];
+    w = [[x_window alloc] init_with_id:xwindow_id screen:self initializing:flag];
     
     /* Need to preserve oldest-first order. */
     _window_list = x_list_append (_window_list, w);
@@ -612,7 +612,7 @@ window_level_less (const void *a, const void *b)
     }
 }
 
-- get_window:(Window)id
+- get_window:(Window)xwindow_id
 {
     x_list *node;
     
@@ -620,12 +620,12 @@ window_level_less (const void *a, const void *b)
     {
         x_window *w = node->data;
         
-        if (w->_id == id)
+        if (w->_id == xwindow_id)
             return w;
         
-        if (!w->_deleted && (w->_frame_id == id
-                             || w->_tracking_id == id
-                             || w->_growbox_id == id))
+        if (!w->_deleted && (w->_frame_id == xwindow_id
+                             || w->_tracking_id == xwindow_id
+                             || w->_growbox_id == xwindow_id))
         {
             return w;
         }
@@ -634,7 +634,7 @@ window_level_less (const void *a, const void *b)
     return nil;
 }
 
-- get_window_by_osx_id:(OSXWindowID)id
+- get_window_by_osx_id:(OSXWindowID)osxwindow_id
 {
     x_list *node;
     
@@ -647,7 +647,7 @@ window_level_less (const void *a, const void *b)
             continue;
         
         wid = [w get_osx_id];
-        if (id == wid)
+        if (osxwindow_id == wid)
             return w;
     }
     

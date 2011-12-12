@@ -42,7 +42,7 @@ frame_titlebar_height (xp_frame_class class)
 }
 
 void
-draw_frame (int screen, Window id, X11Rect outer_r, X11Rect inner_r,
+draw_frame (int screen, Window xwindow_id, X11Rect outer_r, X11Rect inner_r,
             xp_frame_class class, xp_frame_attr attr, CFStringRef title)
 {
     unsigned char title_bytes[512];
@@ -61,11 +61,11 @@ draw_frame (int screen, Window id, X11Rect outer_r, X11Rect inner_r,
     }
 
     DB("id: 0x%ld outer_r: (%d,%d %dx%d) inner_r: (%d,%d %dx%d) class: 0x%d attr: 0x%d title: %s",
-       id, outer_r.x, outer_r.y, outer_r.width, outer_r.height,
+       xwindow_id, outer_r.x, outer_r.y, outer_r.width, outer_r.height,
        inner_r.x, inner_r.y, inner_r.width, inner_r.height, class, attr,
        title_length ? (char *)title_bytes : "(none)");
 
-    XAppleWMFrameDraw (x_dpy, screen, id, class, attr,
+    XAppleWMFrameDraw (x_dpy, screen, xwindow_id, class, attr,
                        inner_r.x, inner_r.y,
                        inner_r.width, inner_r.height,
                        outer_r.x, outer_r.y,

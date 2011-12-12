@@ -50,17 +50,17 @@ extern CGRect DockGetRect(void);
 
 /* Spaces */
 extern CGError DockGetSpace(OSXSpaceID *space_id);
-extern CGError DockGetWindowSpace(OSXWindowID window_id, OSXSpaceID *space_id);
-extern CGError DockChangeSpaceToWindow(OSXWindowID window_id);
+extern CGError DockGetWindowSpace(OSXWindowID osxwindow_id, OSXSpaceID *space_id);
+extern CGError DockChangeSpaceToWindow(OSXWindowID osxwindow_id);
 
 /* Minimize / Restore */
-extern OSStatus DockMinimizeItemWithTitleAsync(OSXWindowID window_id, CFStringRef title);
-extern OSStatus DockRestoreItemAsync(OSXWindowID window_id);
-extern OSStatus DockRemoveItem(OSXWindowID window_id);
+extern OSStatus DockMinimizeItemWithTitleAsync(OSXWindowID osxwindow_id, CFStringRef title);
+extern OSStatus DockRestoreItemAsync(OSXWindowID osxwindow_id);
+extern OSStatus DockRemoveItem(OSXWindowID osxwindow_id);
 
 /* Window dragging */
-extern OSStatus DockDragBegin(OSXWindowID window);
-extern OSStatus DockDragEnd(OSXWindowID window);
+extern OSStatus DockDragBegin(OSXWindowID osxwindow_id);
+extern OSStatus DockDragEnd(OSXWindowID osxwindow_id);
 
 /* Initialization */
 extern void DockInit(bool only_proxy);

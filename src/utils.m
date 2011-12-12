@@ -32,7 +32,7 @@
 #include <X11/Xatom.h>
 
 int
-x_get_property (Window id, Atom atom, long *dest,
+x_get_property (Window xwindow_id, Atom atom, long *dest,
                 unsigned int dest_size, unsigned int min_items)
 {
     Atom type;
@@ -50,7 +50,7 @@ x_get_property (Window id, Atom atom, long *dest,
             if (data != NULL)
                 XFree (data);
 
-            if (XGetWindowProperty (x_dpy, id, atom, 0, long_length, False,
+            if (XGetWindowProperty (x_dpy, xwindow_id, atom, 0, long_length, False,
                                     AnyPropertyType, &type, &format,
                                     &nitems, &bytes_after, &data) != Success)
                 return 0;
@@ -75,7 +75,7 @@ x_get_property (Window id, Atom atom, long *dest,
 }
 
 NSString *
-x_get_string_property (Window id, Atom atom)
+x_get_string_property (Window xwindow_id, Atom atom)
 {
     Atom type;
     int format;
@@ -91,7 +91,7 @@ x_get_string_property (Window id, Atom atom)
             if (data != NULL)
                 XFree (data);
 
-            if (XGetWindowProperty (x_dpy, id, atom, 0, long_length, False,
+            if (XGetWindowProperty (x_dpy, xwindow_id, atom, 0, long_length, False,
                                     AnyPropertyType, &type, &format,
                                     &nitems, &bytes_after, &data) != Success)
                 return nil;

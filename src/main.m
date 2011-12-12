@@ -534,7 +534,7 @@ x_get_screen (Screen *xs)
 }
 
 id
-x_get_screen_with_root (Window id)
+x_get_screen_with_root (Window xwindow_id)
 {
     x_list *node;
 
@@ -542,7 +542,7 @@ x_get_screen_with_root (Window id)
     {
         x_screen *s = node->data;
 
-        if (s->_root == id)
+        if (s->_root == xwindow_id)
             return s;
     }
 
@@ -550,7 +550,7 @@ x_get_screen_with_root (Window id)
 }
 
 id
-x_get_window (Window id)
+x_get_window (Window xwindow_id)
 {
     x_list *node;
 
@@ -559,7 +559,7 @@ x_get_window (Window id)
         x_screen *s = node->data;
         x_window *w;
 
-        w = [s get_window:id];
+        w = [s get_window:xwindow_id];
         if (w != nil)
             return w;
     }
@@ -568,7 +568,7 @@ x_get_window (Window id)
 }
 
 id
-x_get_window_by_osx_id (OSXWindowID id)
+x_get_window_by_osx_id (OSXWindowID osxwindow_id)
 {
     x_list *node;
 
@@ -577,7 +577,7 @@ x_get_window_by_osx_id (OSXWindowID id)
         x_screen *s = node->data;
         x_window *w;
 
-        w = [s get_window_by_osx_id:id];
+        w = [s get_window_by_osx_id:osxwindow_id];
         if (w != nil)
             return w;
     }

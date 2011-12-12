@@ -482,12 +482,12 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     return X11RectMake(x, y, (int)winrect.width + x_pad_l + x_pad_r, (int)winrect.height + y_pad_t + y_pad_b);
 }
 
-- init_with_id:(Window)id screen:screen initializing:(BOOL)flag {
+- init_with_id:(Window)xwindow_id screen:screen initializing:(BOOL)flag {
     self = [super init];
     if (self == nil)
         return nil;
 
-    _id = id;
+    _id = xwindow_id;
     _screen = screen;
 
     _drawn_frame_decor = 0;
@@ -969,10 +969,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (OSXWindowID) get_osx_id
 {
     if (_osx_id == kOSXNullWindowID) {
-        Window id = [self toplevel_id];
+        Window xwindow_id = [self toplevel_id];
         long data;
 
-        if (x_get_property (id, atoms.native_window_id, &data, 1, 1))
+        if (x_get_property (xwindow_id, atoms.native_window_id, &data, 1, 1))
             _osx_id = (OSXWindowID) data;
 
         DB("Window 0x%lx with frame 0x%lx has a new _osx_id: %u", _id, _frame_id, _osx_id);
