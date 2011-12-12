@@ -50,10 +50,10 @@ quartz_wm_SOURCES = \
 	x11-geometry.c \
 	x11-geometry.h
 
-EXTRA_DIST = binary/dock-support-10.4.o binary/dock-support-10.5.o
+EXTRA_DIST = binary/dock-support.o
 
 BUILT_SOURCES = dock-support.o
 MAINTAINERCLEANFILES = $(BUILT_SOURCES)
 
-dock-support.o : $(srcdir)/binary/@DOCK_SUPPORT_O@
-	cp $(srcdir)/binary/@DOCK_SUPPORT_O@ dock-support.o
+dock-support.o : $(srcdir)/binary/dock-support.o
+	cp $(srcdir)/binary/dock-support.o dock-support.o

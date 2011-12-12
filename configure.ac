@@ -47,21 +47,6 @@ AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=PATH], [P
 AC_SUBST([BUNDLE_ID_PREFIX])
 AC_DEFINE_UNQUOTED(BUNDLE_ID_PREFIX, "$BUNDLE_ID_PREFIX", [Prefix to use for bundle identifiers])
 
-AC_MSG_CHECKING(which object file to use for dock-support.o)
-case $host_os in
-	darwin[678]*)
-		DOCK_SUPPORT_O="dock-support-10.4.o"
-		;;
-	darwin*)
-		DOCK_SUPPORT_O="dock-support-10.5.o" 
-		;;
-	*)
-		AC_ERROR([quartz-wm is not supported on your system.])
-		;;
-esac
-AC_SUBST(DOCK_SUPPORT_O)
-AC_MSG_RESULT($DOCK_SUPPORT_O)
-
 AC_OUTPUT([Makefile
 	   src/Makefile
 	   man/Makefile])
