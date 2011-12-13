@@ -75,6 +75,7 @@ XAppleWMSendPSNProcPtr _XAppleWMSendPSN;
 XAppleWMAttachTransientProcPtr _XAppleWMAttachTransient;
 
 /* X11 code */
+_X_NORETURN
 static void x_error_shutdown(void);
 
 static const char *app_prefs_domain = BUNDLE_ID_PREFIX".X11";
@@ -376,6 +377,7 @@ x_init (void)
     x_input_run ();
 }
 
+_X_NORETURN
 static void x_shutdown (void) {
     x_list *node;
 
@@ -395,6 +397,7 @@ static void x_shutdown (void) {
     exit(EXIT_SUCCESS);
 }
 
+_X_NORETURN
 static void x_error_shutdown (void) {
     x_list *node;
 

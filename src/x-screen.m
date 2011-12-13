@@ -126,7 +126,7 @@ type:(const char *)type length:(int)length data:(const long *)data
     type_atom = XInternAtom (x_dpy, type, False);
     
     XChangeProperty (x_dpy, xwindow_id, name_atom, type_atom, 32,
-                     PropModeReplace, (unsigned char *) data, length);
+                     PropModeReplace, (const unsigned char *) data, length);
 }
 
 - (void) set_root_property:(const char *)name type:(const char *)type
@@ -660,7 +660,7 @@ window_level_less (const void *a, const void *b)
     X11Region win_region, title_region, dock_region;
     X11Region screen_region_no_dock;
     X11Rect title_rect, title_int_rect;
-    X11Rect ret;
+    X11Rect ret, dock_rect;
     pixman_box32_t *e;
 
     TRACE();    
@@ -668,7 +668,7 @@ window_level_less (const void *a, const void *b)
     // Figure out where the dock is to handle
     // <rdar://problem/7595340> X11 window can get lost under the dock
     // http://xquartz.macosforge.org/trac/ticket/329
-    X11Rect dock_rect = [self CGToX11Rect:DockGetRect()];
+    dock_rect = [self CGToX11Rect:DockGetRect()];
     
     ret = title_rect = win_rect;
     title_rect.height = titlebar_height;
