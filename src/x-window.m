@@ -1595,7 +1595,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     
     /* Notify listeners about our updated properties */
     [self update_net_wm_action_property];
-    DB("update_net_wm_state_property from do_net_wm_state_change");
+    DB("update_net_wm_state_property from update_frame");
     [self update_net_wm_state_property];
 
     /* Only adjust if we're already reparented */
