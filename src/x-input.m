@@ -936,6 +936,7 @@ x_input_run (void)
 
 	case MotionNotify:
 	    x_event_motion_notify (&e.xmotion);
+	    break;
 
 	case FocusIn:
 	case FocusOut:
@@ -945,6 +946,7 @@ x_input_run (void)
 	case EnterNotify:
 	case LeaveNotify:
 	    x_event_crossing (&e.xcrossing);
+	    break;
 
 	case DestroyNotify:
 	    x_event_destroy_notify (&e.xdestroywindow);
