@@ -595,6 +595,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     /* The window is not yet mapped, so just adjust _current_frame */
     if(!_reparented) {
         _current_frame = r;
+        [self update_net_wm_state_property];
         return;
     }
     
@@ -621,6 +622,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
          will cause a real ConfigureNotify event to be sent. */
         _needs_configure_notify = NO;
     }
+
+    [self update_net_wm_state_property];
 }
 
 - (void) resize_frame:(X11Rect)r force:(BOOL)flag {
@@ -654,12 +657,14 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _pending_frame.x = r.x;
             _pending_frame.y = r.y;
             _needs_configure_notify = NO;
+            [self update_net_wm_state_property];
             return;
         }
     }
 
     _queued_frame = r;
     _queued_frame_change = YES;
+    [self update_net_wm_state_property];
 }
 
 - (void) resize_frame:(X11Rect)r
@@ -698,6 +703,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 
     _current_frame = r;
+    [self update_net_wm_state_property];
 
     if(moved && !resized)
         [self send_configure];
@@ -2318,8 +2324,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
 
     [self resize_frame:new_rect];
-    DB("update_net_wm_state_property from do_zoom\n");
-    [self update_net_wm_state_property];
 }
 
 - (void) do_maximize {
@@ -2334,9 +2338,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _has_unzoomed_frame = YES;
 
         [self resize_frame:maximized_rect];
-
-        DB("update_net_wm_state_property from do_maximize\n");
-        [self update_net_wm_state_property];
     }
 }
 
