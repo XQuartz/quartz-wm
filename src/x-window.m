@@ -57,6 +57,7 @@
 - (void) decorate_rect:(X11Rect)or;
 - (xp_frame_class) get_xp_frame_class;
 - (void) map_unmap_client;
+- (BOOL) is_maximized;
 - (void) do_maximize;
 - (void) do_fullscreen:(BOOL)flag;
 - (void) do_uncollapse_and_tell_dock:(BOOL)tell_dock with_animation:(BOOL)anim;
@@ -67,6 +68,7 @@
                       from_user:(BOOL)uflag constrain:(BOOL)cflag;
 - (X11Rect) frame_inner_rect:(X11Rect)or;
 - (X11Rect) client_rect:(X11Rect)or;
+- (X11Rect) intended_frame;
 @end
 
 static const char *gravity_type(int gravity) {
@@ -1418,7 +1420,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     }
     if(_fullscreen)
         _atoms[n_atoms++] = atoms.net_wm_state_fullscreen;
-    if(X11RectEqualToRect(_current_frame, [_screen zoomed_rect:X11RectOrigin(_current_frame)])) {
+    if([self is_maximized]) {
         _atoms[n_atoms++] = atoms.net_wm_state_maximized_horz;
         _atoms[n_atoms++] = atoms.net_wm_state_maximized_vert;
     }
@@ -1459,7 +1461,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             x_remove_window_from_menu (self);
     } else if(state == atoms.net_wm_state_maximized_horz ||
               state == atoms.net_wm_state_maximized_vert) {
-        BOOL maximized = X11RectEqualToRect(_current_frame, [_screen zoomed_rect:X11RectOrigin(_current_frame)]);
+        BOOL maximized = [self is_maximized];
         if(mode == 1 || (mode == 2 && !maximized))
             [self do_maximize];
         else if(maximized)
@@ -2291,21 +2293,28 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         [self do_unshade:timestamp];
 }
 
+- (BOOL) is_maximized
+{
+    X11Rect r = [self intended_frame];
+    return X11RectEqualToRect(r, [_screen zoomed_rect:X11RectOrigin(r)]);
+}
+
 - (void) do_zoom {
-    X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
-    X11Rect new_rect = maximized_rect;
+    X11Rect r = [self intended_frame];
+    X11Rect new_rect;
 
     TRACE ();
 
     if (!_has_unzoomed_frame) {
-        _unzoomed_frame = _current_frame;
+        _unzoomed_frame = r;
         _has_unzoomed_frame = YES;
     }
 
-    if(X11RectEqualToRect(_current_frame, maximized_rect)) {
+    if([self is_maximized]) {
         new_rect = [self validate_frame_rect:_unzoomed_frame];
     } else {
-        _unzoomed_frame = _current_frame;
+        new_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(r)]];
+        _unzoomed_frame = r;
     }
 
     [self resize_frame:new_rect];
@@ -2314,12 +2323,14 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 }
 
 - (void) do_maximize {
-    X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
 
     TRACE ();
 
-    if(!X11RectEqualToRect(_current_frame, maximized_rect)) {
-        _unzoomed_frame = _current_frame;
+    if(![self is_maximized]) {
+        X11Rect r = [self intended_frame];
+        X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(r)]];
+
+        _unzoomed_frame = r;
         _has_unzoomed_frame = YES;
 
         [self resize_frame:maximized_rect];
@@ -2334,7 +2345,6 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
  * the actual frame for Xplugin (done in update_frame).
  */
 - (void) do_fullscreen:(BOOL) flag {
-    X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(_current_frame)]];
 
     DB("id: 0x%x frame_id: 0x%x currently: %d requested: %d\n", _id, _frame_id, _fullscreen, flag);
 
@@ -2350,7 +2360,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         return;
 
     if(flag) {
-        _unzoomed_frame = _current_frame;
+        X11Rect r = [self intended_frame];
+        X11Rect maximized_rect = [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(r)]];
+
+        _unzoomed_frame = r;
         _has_unzoomed_frame = YES;
 
         [self resize_frame:maximized_rect force:YES];
@@ -2623,6 +2636,20 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
         return [NSString stringWithFormat:@"{x-window %@}", _title];
     else
         return [NSString stringWithFormat:@"{x-window 0x%x}", _id];
+}
+
+- (X11Rect) intended_frame
+{
+    X11Rect r;
+
+    if (_queued_frame_change)
+        r = _queued_frame;
+    else if (_pending_frame_change)
+        r = _pending_frame;
+    else
+        r = _current_frame;
+
+    return r;
 }
 
 @end
