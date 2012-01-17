@@ -47,6 +47,13 @@ AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=PATH], [P
 AC_SUBST([BUNDLE_ID_PREFIX])
 AC_DEFINE_UNQUOTED(BUNDLE_ID_PREFIX, "$BUNDLE_ID_PREFIX", [Prefix to use for bundle identifiers])
 
+# dock-support.o has weak symbols that will not be present at build time on Leopard
+case $host_os in
+    darwin9.*)
+        LDFLAGS="$LDFLAGS -undefined suppress -flat_namespace"
+        ;;
+esac
+
 AC_OUTPUT([Makefile
 	   src/Makefile
 	   man/Makefile])

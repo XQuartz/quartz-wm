@@ -28,8 +28,7 @@ AM_CFLAGS = $(QUARTZWM_CFLAGS) $(CWARNFLAGS)
 quartz_wm_LDFLAGS = $(QUARTZWM_LIBS) \
 	-framework AppKit \
 	-framework Foundation \
-	-framework ApplicationServices \
-	-undefined dynamic_lookup
+	-framework ApplicationServices
 
 quartz_wm_LDADD = dock-support.o
 
