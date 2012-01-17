@@ -56,6 +56,13 @@ esac
 AC_SUBST(DOCK_SUPPORT_O)
 AC_MSG_RESULT($DOCK_SUPPORT_O)
 
+# dock-support.o has weak symbols that will not be present at build time on Leopard
+case $host_os in
+    darwin9.*)
+        LDFLAGS="$LDFLAGS -undefined suppress -flat_namespace"
+        ;;
+esac
+
 AC_OUTPUT([Makefile
 	   src/Makefile
 	   man/Makefile])
