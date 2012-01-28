@@ -1965,7 +1965,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     [self focus:timestamp raise:YES];
 
-    DockChangeSpaceToWindow([self get_osx_id]);
+    DockActivateWindow([self get_osx_id]);
 }
 
 - (void) x_focus_in
