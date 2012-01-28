@@ -20,7 +20,7 @@ dnl
 dnl @APPLE_LICENSE_HEADER_END@
 
 AC_PREREQ([2.61])
-AC_INIT(quartz-wm,[1.2.99.901], [http://xquartz.macosforge.org],quartz-wm)
+AC_INIT(quartz-wm,[1.2.99.902], [http://xquartz.macosforge.org],quartz-wm)
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
 AM_MAINTAINER_MODE
 
