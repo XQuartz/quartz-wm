@@ -433,15 +433,13 @@ window_level_less (const void *a, const void *b)
 {
     x_window *w;
     x_list *sl;
-
-    OSXSpaceID current_space_id, window_space_id;
-    
-    DockGetSpace(&current_space_id);
+    CGError err;
+    BOOL isVisible;
 
     for(sl = _stacking_list; sl; sl = sl->next) {
         w = sl->data;
-        DockGetWindowSpace([w get_osx_id], &window_space_id);
-        if(window_space_id == current_space_id) {
+        err = DockIsWindowVisible([w get_osx_id], &isVisible);
+        if(!err && isVisible) {
             [w focus:timestamp];
             return;
         }

@@ -1744,7 +1744,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 
     [self focus:timestamp raise:YES];
 
-    DockChangeSpaceToWindow([self get_osx_id]);
+    DockActivateWindow([self get_osx_id]);
 }
 
 - (void) x_focus_in
