@@ -80,7 +80,7 @@ XAppleWMAttachTransientProcPtr _XAppleWMAttachTransient;
 /* X11 code */
 static void x_error_shutdown(void);
 
-static const char *app_prefs_domain = "org.x.X11";
+static const char *app_prefs_domain = BUNDLE_ID_PREFIX".X11";
 static CFStringRef app_prefs_domain_cfstr = NULL;
 
 void
@@ -966,7 +966,7 @@ int main (int argc, const char *argv[]) {
                    "--only-proxy              Don't manage windows, just proxy pasteboard\n"
                    "--no-pasteboard           Don't proxy pasteboard, just manage windows\n"
                    "--prefs-domain <domain>   Change the domain used for reading preferences\n"
-                   "                          (default: org.x.X11)\n");
+                   "                          (default: "BUNDLE_ID_PREFIX".X11)\n");
             return 0;
         } else {
             fprintf(stderr, "usage: quartz-wm OPTIONS...\n"
