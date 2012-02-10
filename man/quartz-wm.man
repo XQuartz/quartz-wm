@@ -55,7 +55,7 @@ the same time.
 .Nm
 can be customized using the
 .Xr defaults 1
-command.  Examples are shown using the default org.x.X11 domain.  If you
+command.  Examples are shown using the default __bundle_id_prefix__.X11 domain.  If you
 use another domain (either through the X11_PREFS_DOMAIN environment
 variable or the --prefs-domain command line argument), then you need
 to substitute that instead.
@@ -66,23 +66,23 @@ can be forced to re-read these preferences by sending it a SIGHUP using
 The available options are:
 .Pp
 .Bl -tag -width indent
-.It defaults write org.x.X11 wm_ffm -bool true
+.It defaults write __bundle_id_prefix__.X11 wm_ffm -bool true
 Enables focus-follows-mouse mode. Windows belonging to the X server may
 then be focused by moving the pointer over them, as well as the default
 mode of clicking in them.
-.It defaults write org.x.X11 wm_click_through -bool true
+.It defaults write __bundle_id_prefix__.X11 wm_click_through -bool true
 Disables the default behavior of swallowing window-activating mouse events.
-.It defaults write org.x.X11 wm_limit_size -bool true
+.It defaults write __bundle_id_prefix__.X11 wm_limit_size -bool true
 Limit the size of each window to the size of the current head.
-.It defaults write org.x.x11 wm_focus_on_new_window -bool false
+.It defaults write __bundle_id_prefix__.x11 wm_focus_on_new_window -bool false
 Don't tell X11.app to take focus when a new X11 window is created.
-.It defaults write org.x.X11 wm_window_shading -bool true
+.It defaults write __bundle_id_prefix__.X11 wm_window_shading -bool true
 Enables double clicking on a titlebar to shade the window
-.It defaults write org.x.X11 wm_auto_quit -bool true
+.It defaults write __bundle_id_prefix__.X11 wm_auto_quit -bool true
 Automatically quit
 .Nm
 (thus shutting down the X11 server) when the last window is closed.
-.It defaults write org.x.X11 wm_auto_quit_timeout -int 3
+.It defaults write __bundle_id_prefix__.X11 wm_auto_quit_timeout -int 3
 Set the timeout for the auto-quit feature.  If wm_auto_quit is true, quartz-wm
 will wait this many seconds before attempting to shutdown.  If another window
 is created in that time, quartz-wm will not shutdown.
@@ -95,7 +95,7 @@ This variable is used to determine which X server to use.
 .It X11_PREFS_DOMAIN
 This variable is used as Ar domain if the Fl -prefs-domain command line option
 is not given.  If neither Fl -prefs-domain nor X11_PREFS_DOMAIN are set, then
-the default value of org.x.X11 is used instead.
+the default value of __bundle_id_prefix__.X11 is used instead.
 .El
 .Sh LEGACY
 .Nm
