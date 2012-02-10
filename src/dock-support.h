@@ -46,9 +46,8 @@ typedef enum {
 extern DockOrientation DockGetOrientation(void);
 extern CGRect DockGetRect(void);
 
-/* Window Visibility / Activation */
+/* Window Visibility */
 extern CGError DockIsWindowVisible(OSXWindowID window_id, BOOL *isVisible);
-extern CGError DockActivateWindow(OSXWindowID osxwindow_id);
 
 /* Minimize / Restore */
 extern OSStatus DockMinimizeItemWithTitleAsync(OSXWindowID osxwindow_id, CFStringRef title);
