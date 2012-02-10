@@ -28,11 +28,7 @@
 #include <CoreGraphics/CoreGraphics.h>
 #include <stdint.h>
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
 typedef uint32_t OSXWindowID;
-#else
-typedef void * OSXWindowID;
-#endif
 
 #define kOSXNullWindowID ((OSXWindowID)0)
 
