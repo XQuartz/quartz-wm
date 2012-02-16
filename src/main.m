@@ -571,7 +571,7 @@ x_get_window (Window xwindow_id)
 }
 
 id
-x_get_window_by_osx_id (OSXWindowID osxwindow_id)
+x_get_window_by_osx_id (qwm_native_window_id osxwindow_id)
 {
     x_list *node;
 
@@ -983,7 +983,8 @@ int main (int argc, const char *argv[]) {
     aslc = asl_open("quartz-wm", asl_facility, asl_opts);
 
     signal_handler_cb_init();
-    DockInit(0);
+    qwm_dock_event_set_handler(dock_event_handler);
+    qwm_dock_init(0);
     x_init ();
 
     signal (SIGINT, signal_handler);

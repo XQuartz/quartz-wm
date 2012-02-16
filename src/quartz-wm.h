@@ -88,7 +88,7 @@ extern void x_update_keymap (void);
 extern id x_get_screen (Screen *xs);
 extern id x_get_screen_with_root (Window xwindow_id);
 extern id x_get_window (Window xwindow_id);
-extern id x_get_window_by_osx_id (OSXWindowID osxwindow_id);
+extern id x_get_window_by_osx_id (qwm_native_window_id osxwindow_id);
 extern void x_set_active_window (id w);
 extern id x_get_active_window (void);
 extern void x_set_is_active (BOOL state);
@@ -189,6 +189,10 @@ struct atoms_struct_t {
 };
 
 extern struct atoms_struct_t atoms;
+
+/* Dock Events */
+#include "dock-support.h"
+extern void dock_event_handler(qwm_dock_event *event);
 
 /* Debugging support */
 extern void debug_printf (const char *fmt, ...) _X_ATTRIBUTE_PRINTF(1,2);

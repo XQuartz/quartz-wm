@@ -230,7 +230,7 @@ x_event_button (XButtonEvent *e)
                 if (pointer_state.dragging)
                 {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
-                    DockDragEnd([w get_osx_id]);
+                    qwm_dock_drag_end([w get_osx_id]);
 #endif
                     pointer_state.dragging = NO;
                 }
@@ -322,7 +322,7 @@ x_event_motion_notify (XMotionEvent *e)
                 /* We must have missed the button-release */
                 if(pointer_state.dragging) {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
-                    DockDragEnd([w get_osx_id]);
+                    qwm_dock_drag_end([w get_osx_id]);
 #endif
                     pointer_state.dragging = NO;
                 }
@@ -339,7 +339,7 @@ x_event_motion_notify (XMotionEvent *e)
                                 w->_current_frame.width, w->_current_frame.height);
                 r = [w->_screen validate_window_position:r titlebar_height:w->_frame_title_height];
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
-                DockDragBegin([w get_osx_id]);
+                qwm_dock_drag_begin([w get_osx_id]);
 #endif
                 [w resize_frame:r];
             }

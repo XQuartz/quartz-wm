@@ -448,7 +448,7 @@ window_level_less (const void *a, const void *b)
 
     for(sl = _stacking_list; sl; sl = sl->next) {
         w = sl->data;
-        err = DockIsWindowVisible([w get_osx_id], &isVisible);
+        err = qwm_dock_is_window_visible([w get_osx_id], &isVisible);
         if(!err && isVisible) {
             [w focus:timestamp];
             return;
@@ -632,14 +632,14 @@ window_level_less (const void *a, const void *b)
     return nil;
 }
 
-- get_window_by_osx_id:(OSXWindowID)osxwindow_id
+- get_window_by_osx_id:(qwm_native_window_id)osxwindow_id
 {
     x_list *node;
     
     for (node = _window_list; node != NULL; node = node->next)
     {
         x_window *w = node->data;
-        OSXWindowID wid;
+        qwm_native_window_id wid;
         
         if (w->_deleted)
             continue;
@@ -666,7 +666,7 @@ window_level_less (const void *a, const void *b)
     // Figure out where the dock is to handle
     // <rdar://problem/7595340> X11 window can get lost under the dock
     // http://xquartz.macosforge.org/trac/ticket/329
-    dock_rect = [self CGToX11Rect:DockGetRect()];
+    dock_rect = [self CGToX11Rect:qwm_dock_get_rect()];
     
     ret = title_rect = win_rect;
     title_rect.height = titlebar_height;
@@ -730,18 +730,18 @@ window_level_less (const void *a, const void *b)
             ret.y = _main_head.y;
         } else {
             /* Window is partially behind our dock. */
-            switch(DockGetOrientation()) {
-                case kDockBottom:
+            switch(qwm_dock_get_orientation()) {
+                case QWM_DOCK_ORIENTATION_BOTTOM:
                     ret.y = dock_rect.y - titlebar_height;
                     break;
-                case kDockLeft:
+                case QWM_DOCK_ORIENTATION_LEFT:
                     ret.x = dock_rect.x + dock_rect.width - ret.width + 40;
                     break;
-                case kDockRight:
+                case QWM_DOCK_ORIENTATION_RIGHT:
                     ret.x = dock_rect.x - 40;
                     break;
                 default:
-                    asl_log(aslc, NULL, ASL_LEVEL_WARNING, "Invalid response from DockGetOrientation()");
+                    asl_log(aslc, NULL, ASL_LEVEL_WARNING, "Invalid response from qwm_dock_get_orientation()");
                     break;
             }
         }
@@ -767,7 +767,7 @@ window_level_less (const void *a, const void *b)
             
             dpy_rect = _heads[i];
             
-            if(DockGetOrientation() == kDockBottom &&
+            if(qwm_dock_get_orientation() == QWM_DOCK_ORIENTATION_BOTTOM &&
                X11RectContainsPoint(dpy_rect, X11PointMake(dock_rect.x, dock_rect.y)))
                 dock_bottom_height = dock_rect.height;
             
