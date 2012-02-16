@@ -265,7 +265,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
         _frame_id = 0;
         _tracking_id = 0;
         _growbox_id = 0;
-        _osx_id = kOSXNullWindowID;
+        _osx_id = QWM_NULL_NATIVE_WINDOW_ID;
     }
 
     /* Mark us as not transient of a parent */
@@ -988,16 +988,15 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     [self update_shape:[self frame_outer_rect]];
 }
 
-- (OSXWindowID) get_osx_id
+- (qwm_native_window_id) get_osx_id
 {
-    if (_osx_id == kOSXNullWindowID) {
+    if (_osx_id == QWM_NULL_NATIVE_WINDOW_ID) {
 	Window id = [self toplevel_id];
 	long data;
 
 	/* FIXME: Add query to AppleWM? */
-
 	if (x_get_property (id, atoms.native_window_id, &data, 1, 1))
-	    _osx_id = (OSXWindowID) data;
+	    _osx_id = (qwm_native_window_id) data;
     }
 
     return _osx_id;
@@ -1475,7 +1474,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     }
 
     /* We do this outside of the change-check since get_osx_id can be NULL during init */
-    if([self get_osx_id] != kOSXNullWindowID) {
+    if([self get_osx_id] != QWM_NULL_NATIVE_WINDOW_ID) {
         if(_XAppleWMAttachTransient) {
             Window transient_frame_id = _transient_for ? _transient_for->_frame_id : 0;
             _XAppleWMAttachTransient(x_dpy, _frame_id, transient_frame_id);
@@ -1507,7 +1506,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     } else if (atom == atoms.wm_protocols) {
         [self update_wm_protocols];
     } else if (atom == atoms.native_window_id) {
-        _osx_id = kOSXNullWindowID;
+        _osx_id = QWM_NULL_NATIVE_WINDOW_ID;
     } else if (atom == atoms.net_wm_name) {
         [self update_wm_name];
     } else if (atom == atoms.wm_colormap_windows) {
@@ -1895,7 +1894,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     else
     {
 	_minimized = NO;
-	_minimized_osx_id = kOSXNullWindowID;
+	_minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
     }
 
     [self map_unmap_client];
@@ -1905,7 +1904,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 
 - (void) do_collapse
 {
-    OSXWindowID wid;
+    qwm_native_window_id wid;
     OSStatus err;
 
     TRACE ();
@@ -1914,10 +1913,10 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 	return;
 
     wid = [self get_osx_id];
-    if (wid == kOSXNullWindowID)
+    if (wid == QWM_NULL_NATIVE_WINDOW_ID)
 	return;
 
-    err = DockMinimizeItemWithTitleAsync (wid, (CFStringRef) _title);
+    err = qwm_dock_minimize_item_with_title_async (wid, (CFStringRef) _title);
     if (err == noErr)
     {
 	_animating = YES;
@@ -1949,8 +1948,8 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
         return;
     
     _minimized = NO;
-    
-    if (_minimized_osx_id == kOSXNullWindowID)
+
+    if (_minimized_osx_id == QWM_NULL_NATIVE_WINDOW_ID)
         return;
     
     [self map_unmap_client];
@@ -1968,14 +1967,14 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 
     if(tell_dock) {
         if (anim)
-            err = DockRestoreItemAsync (_minimized_osx_id);
+            err = qwm_dock_restore_item_async (_minimized_osx_id);
         else
-            err = DockRemoveItem (_minimized_osx_id);
+            err = qwm_dock_remove_item (_minimized_osx_id);
     }
 
     if (err == noErr) {
         _animating = YES;
-        _minimized_osx_id = kOSXNullWindowID;
+        _minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
         [self set_wm_state:NormalState];
         [self send_configure];
         
@@ -2007,10 +2006,10 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     /* Called when we're terminating abnormally. Can't make any
        X protocol requests. */
 
-    if (_minimized_osx_id != kOSXNullWindowID)
+    if (_minimized_osx_id != QWM_NULL_NATIVE_WINDOW_ID)
     {
-	DockRemoveItem (_minimized_osx_id);
-	_minimized_osx_id = kOSXNullWindowID;
+        qwm_dock_remove_item (_minimized_osx_id);
+        _minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
     }
 }
 

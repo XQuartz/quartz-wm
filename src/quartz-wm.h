@@ -26,7 +26,7 @@
 #define QUARTZ_WM_H 1
 
 #import  <Foundation/Foundation.h>
-#include <CoreGraphics/CoreGraphics.h>
+#include <ApplicationServices/ApplicationServices.h>
 
 #define  Cursor X_Cursor
 #undef _SHAPE_H_
@@ -85,7 +85,7 @@ extern void x_update_keymap (void);
 extern id x_get_screen (Screen *xs);
 extern id x_get_screen_with_root (Window id);
 extern id x_get_window (Window id);
-extern id x_get_window_by_osx_id (OSXWindowID id);
+extern id x_get_window_by_osx_id (qwm_native_window_id id);
 extern void x_set_active_window (id w);
 extern id x_get_active_window (void);
 extern void x_set_is_active (BOOL state);
@@ -178,6 +178,10 @@ struct atoms_struct_t {
 };
 
 extern struct atoms_struct_t atoms;
+
+/* Dock Events */
+#include "dock-support.h"
+extern void dock_event_handler(qwm_dock_event *event);
 
 #ifdef DEBUG
 #define DB(msg, args...) debug_printf("%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args)

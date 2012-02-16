@@ -81,7 +81,7 @@
 - (void) unadopt_windows;
 - (void) error_shutdown;
 - get_window:(Window)id;
-- get_window_by_osx_id:(OSXWindowID)id;
+- get_window_by_osx_id:(qwm_native_window_id)id;
 - (X11Rect) validate_window_position:(X11Rect)r titlebar_height:(size_t)titlebar_height;
 - (X11Rect) zoomed_rect:(X11Point)p;
 - (X11Rect) zoomed_rect;

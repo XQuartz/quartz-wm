@@ -565,7 +565,7 @@ x_get_window (Window id)
 }
 
 id
-x_get_window_by_osx_id (OSXWindowID id)
+x_get_window_by_osx_id (qwm_native_window_id id)
 {
     x_list *node;
 
@@ -977,7 +977,8 @@ int main (int argc, const char *argv[]) {
     }
     
     prefs_reload_init();
-    DockInit(_only_proxy);
+    qwm_dock_event_set_handler(dock_event_handler);
+    qwm_dock_init(_only_proxy);
     x_init ();
     
     signal (SIGINT, signal_handler);

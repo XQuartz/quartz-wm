@@ -136,9 +136,9 @@ typedef enum {
     int _n_colormap_windows;
 
 @private
-    OSXWindowID _osx_id;
-    OSXWindowID _minimized_osx_id;
-    
+    qwm_native_window_id _osx_id;
+    qwm_native_window_id _minimized_osx_id;
+
     /* Transience tree */
     Window _transient_for_id;
     x_window *_transient_for;
@@ -159,7 +159,7 @@ typedef enum {
 - (void) decorate;
 - (void) property_changed:(Atom)atom;
 - (x_list *) window_group;
-- (OSXWindowID) get_osx_id;
+- (qwm_native_window_id) get_osx_id;
 - (void) set_wm_state:(int)state;
 - (void) raise;
 - (BOOL) focus:(Time)timestamp;

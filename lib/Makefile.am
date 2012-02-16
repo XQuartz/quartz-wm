@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Apple Inc. All Rights Reserved.
+# Copyright (c) 2012 Apple Inc. All Rights Reserved.
 #
 # @APPLE_LICENSE_HEADER_START@
 #
@@ -19,32 +19,24 @@
 #
 # @APPLE_LICENSE_HEADER_END@
 
-bin_PROGRAMS = quartz-wm
+DIST_LIB = libquartz-wm-ds.apsl.dylib
+LIBRARY_BASENAME = libquartz-wm-ds.1.dylib
+LIBRARY_SYMLINK = libquartz-wm-ds.dylib
 
-AM_CPPFLAGS = -I$(top_srcdir)/lib
-AM_OBJCFLAGS = $(QUARTZWM_CFLAGS) $(CWARNFLAGS)
-AM_CFLAGS = $(QUARTZWM_CFLAGS) $(CWARNFLAGS)
+all : $(LIBRARY_SYMLINK)
 
-quartz_wm_LDFLAGS = $(QUARTZWM_LIBS) \
-	-L$(top_builddir)/lib -lquartz-wm-ds \
-	-framework AppKit
+$(LIBRARY_SYMLINK) : $(LIBRARY_BASENAME)
+	ln -s $^ $@
 
-quartz_wm_SOURCES = \
-	dock-support-handler.m \
-	frame.h \
-	frame.m \
-	main.m \
-	quartz-wm.h \
-	utils.h \
-	utils.m \
-	x-input.m \
-	x-list.c \
-	x-list.h \
-	x-screen.h \
-	x-screen.m \
-	x-selection.h \
-	x-selection.m \
-	x-window.h \
-	x-window.m \
-	x11-geometry.c \
-	x11-geometry.h
+$(LIBRARY_BASENAME) : $(DIST_LIB)
+	cp $^ $@
+	install_name_tool -id $(libdir)/$@ $@
+
+install-exec-hook : $(LIBRARY_BASENAME)
+	install -d -m 755 $(DESTDIR)$(libdir)
+	install -m 755 $(LIBRARY_BASENAME) $(DESTDIR)$(libdir)
+	ln -s $(LIBRARY_BASENAME) $(DESTDIR)$(libdir)/$(LIBRARY_SYMLINK)
+
+CLEANFILES = $(LIBRARY_SYMLINK) $(LIBRARY_BASENAME)
+
+EXTRA_DIST = dock-support.h $(DIST_LIB)
