@@ -19,7 +19,7 @@
 #
 # @APPLE_LICENSE_HEADER_END@
 
-SUBDIRS = src man
+SUBDIRS = lib src man
 
 MAINTAINERCLEANFILES = ChangeLog INSTALL
 
