@@ -35,6 +35,7 @@ $(LIBRARY_BASENAME) : $(DIST_LIB)
 install-exec-hook : $(LIBRARY_BASENAME)
 	install -d -m 755 $(DESTDIR)$(libdir)
 	install -m 755 $(LIBRARY_BASENAME) $(DESTDIR)$(libdir)
+	rm $(DESTDIR)$(libdir)/$(LIBRARY_SYMLINK)
 	ln -s $(LIBRARY_BASENAME) $(DESTDIR)$(libdir)/$(LIBRARY_SYMLINK)
 
 CLEANFILES = $(LIBRARY_SYMLINK) $(LIBRARY_BASENAME)
