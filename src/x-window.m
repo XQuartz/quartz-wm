@@ -2300,7 +2300,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (BOOL) is_maximized
 {
     X11Rect r = [self intended_frame];
-    return X11RectEqualToRect(r, [_screen zoomed_rect:X11RectOrigin(r)]);
+    return X11RectEqualToRect(r, [self validate_frame_rect:[_screen zoomed_rect:X11RectOrigin(r)]]);
 }
 
 - (void) do_zoom {
