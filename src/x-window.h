@@ -131,8 +131,8 @@
     xp_frame_class _drawn_frame_decor;
 
     /* Mac IDs corresponding to these windows */
-    qwm_native_window_id _osx_id;
-    qwm_native_window_id _minimized_osx_id;
+    xp_native_window_id _osx_id;
+    xp_native_window_id _minimized_osx_id;
 
     /* Transience tree */
     Window _transient_for_id;
@@ -155,7 +155,7 @@
 - (void) property_changed:(Atom)atom;
 - (void) update_net_wm_action_property;
 - (x_list *) window_group;
-- (qwm_native_window_id) get_osx_id;
+- (xp_native_window_id) get_osx_id;
 - (void) set_wm_state:(int)state;
 - (void) raise;
 - (BOOL) focus:(Time)timestamp;

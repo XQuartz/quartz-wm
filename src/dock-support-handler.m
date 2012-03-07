@@ -35,14 +35,14 @@
 
 #include "dock-support.h"
 
-void dock_event_handler(qwm_dock_event *event) {
+void dock_event_handler(xp_dock_event *event) {
     x_list *s_node = NULL, *w_node = NULL;
     x_window *w = NULL;
     x_screen *s = NULL;
-    qwm_native_window_id *native_wid;
+    xp_native_window_id *native_wid;
 
     switch (event->type) {
-        case QWM_DOCK_EVENT_RESTORE_ALL_WINDOWS:
+        case XP_DOCK_EVENT_RESTORE_ALL_WINDOWS:
             for (s_node = screen_list; s_node != NULL; s_node = s_node->next) {
                 s = s_node->data;
                 for (w_node = s->_window_list; w_node != NULL; w_node = w_node->next) {
@@ -54,15 +54,15 @@ void dock_event_handler(qwm_dock_event *event) {
                 }
             }
             break;
-        case QWM_DOCK_EVENT_RESTORE_WINDOWS:
-        case QWM_DOCK_EVENT_SELECT_WINDOWS:
-        case QWM_DOCK_EVENT_RESTORE_DONE:
-        case QWM_DOCK_EVENT_MINIMIZE_DONE:
-            if (event->type == QWM_DOCK_EVENT_RESTORE_WINDOWS ||
-                event->type == QWM_DOCK_EVENT_SELECT_WINDOWS)
+        case XP_DOCK_EVENT_RESTORE_WINDOWS:
+        case XP_DOCK_EVENT_SELECT_WINDOWS:
+        case XP_DOCK_EVENT_RESTORE_DONE:
+        case XP_DOCK_EVENT_MINIMIZE_DONE:
+            if (event->type == XP_DOCK_EVENT_RESTORE_WINDOWS ||
+                event->type == XP_DOCK_EVENT_SELECT_WINDOWS)
                 XAppleWMSetFrontProcess (x_dpy);
 
-            for (native_wid = event->windows; *native_wid != QWM_NULL_NATIVE_WINDOW_ID; native_wid++) {
+            for (native_wid = event->windows; *native_wid != XP_NULL_NATIVE_WINDOW_ID; native_wid++) {
                 w = x_get_window_by_osx_id (*native_wid);
                 if (w == NULL) {
                     DB("Invalid native window id: %u\n", *native_wid);
@@ -70,17 +70,17 @@ void dock_event_handler(qwm_dock_event *event) {
                 }
 
                 switch (event->type) {
-                    case QWM_DOCK_EVENT_RESTORE_WINDOWS:
+                    case XP_DOCK_EVENT_RESTORE_WINDOWS:
                         [w do_uncollapse_and_tell_dock:FALSE];
                         [w activate:CurrentTime];
                         break;
-                    case QWM_DOCK_EVENT_SELECT_WINDOWS:
+                    case XP_DOCK_EVENT_SELECT_WINDOWS:
                         [w activate:CurrentTime];
                         break;
-                    case QWM_DOCK_EVENT_RESTORE_DONE:
+                    case XP_DOCK_EVENT_RESTORE_DONE:
                         [w uncollapse_finished:event->success];
                         break;
-                    case QWM_DOCK_EVENT_MINIMIZE_DONE:
+                    case XP_DOCK_EVENT_MINIMIZE_DONE:
                         [w collapse_finished:event->success];
                         break;
                     default:

@@ -25,58 +25,90 @@
 #ifndef __DOCK_SUPPORT_H__
 #define __DOCK_SUPPORT_H__
 
+#include <Xplugin.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <objc/objc.h>
 
-typedef uint32_t qwm_native_window_id;
+#ifdef XPLUGIN_DOCK_SUPPORT
 
-#define QWM_NULL_NATIVE_WINDOW_ID ((qwm_native_window_id)0)
+#if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION < 5
+#error "The installed version of libXplugin is not recent enough to support quartz-wm.  Please reconfigure and use the provided libquartz-wm-ds instead."
+#endif
+
+#define qwm_dock_get_orientation xp_dock_get_orientation
+#define qwm_dock_get_rect xp_dock_get_rect
+#define qwm_dock_is_window_visible xp_dock_is_window_visible
+#define qwm_dock_minimize_item_with_title_async xp_dock_minimize_item_with_title_async
+#define qwm_dock_restore_item_async xp_dock_restore_item_async
+#define qwm_dock_remove_item xp_dock_remove_item
+#define qwm_dock_drag_begin xp_dock_drag_begin
+#define qwm_dock_drag_end xp_dock_drag_end
+#define qwm_dock_event_set_handler xp_dock_event_set_handler
+
+static inline void qwm_dock_init(bool only_proxy) {
+    int options = XP_IN_BACKGROUND;
+
+    if (!only_proxy)
+        options |= XP_DOCK_SUPPORT;
+    xp_init(options);
+}
+
+#else
+
+/* If our Xplugin headers aren't new enough, provide missing types */
+#if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION < 5
+typedef unsigned int xp_native_window_id;
+
+#define XP_NULL_NATIVE_WINDOW_ID ((xp_native_window_id)0)
 
 /* Dock location */
-typedef enum {
-    QWM_DOCK_ORIENTATION_BOTTOM = 2,
-    QWM_DOCK_ORIENTATION_LEFT   = 3,
-    QWM_DOCK_ORIENTATION_RIGHT  = 4,
-} qwm_dock_orientation;
-
-extern qwm_dock_orientation qwm_dock_get_orientation(void);
-extern CGRect qwm_dock_get_rect(void);
-
-/* Window Visibility */
-extern CGError qwm_dock_is_window_visible(qwm_native_window_id window_id, BOOL *is_visible);
-
-/* Minimize / Restore */
-extern OSStatus qwm_dock_minimize_item_with_title_async(qwm_native_window_id osxwindow_id, CFStringRef title);
-extern OSStatus qwm_dock_restore_item_async(qwm_native_window_id osxwindow_id);
-extern OSStatus qwm_dock_remove_item(qwm_native_window_id osxwindow_id);
-
-/* Window dragging */
-extern OSStatus qwm_dock_drag_begin(qwm_native_window_id osxwindow_id);
-extern OSStatus qwm_dock_drag_end(qwm_native_window_id osxwindow_id);
-
-/* Initialization */
-extern void qwm_dock_init(bool only_proxy);
+enum xp_dock_orientation_enum {
+    XP_DOCK_ORIENTATION_BOTTOM = 2,
+    XP_DOCK_ORIENTATION_LEFT   = 3,
+    XP_DOCK_ORIENTATION_RIGHT  = 4,
+};
+typedef enum xp_dock_orientation_enum xp_dock_orientation;
 
 /* Event handling */
 typedef enum {
-    QWM_DOCK_EVENT_RESTORE_ALL_WINDOWS = 1,
-    QWM_DOCK_EVENT_RESTORE_WINDOWS    = 2,
-    QWM_DOCK_EVENT_SELECT_WINDOWS     = 3,
-    QWM_DOCK_EVENT_RESTORE_DONE       = 4,
-    QWM_DOCK_EVENT_MINIMIZE_DONE      = 5,
-} qwm_dock_event_type;
+    XP_DOCK_EVENT_RESTORE_ALL_WINDOWS = 1,
+    XP_DOCK_EVENT_RESTORE_WINDOWS     = 2,
+    XP_DOCK_EVENT_SELECT_WINDOWS      = 3,
+    XP_DOCK_EVENT_RESTORE_DONE        = 4,
+    XP_DOCK_EVENT_MINIMIZE_DONE       = 5,
+} xp_dock_event_type;
 
 typedef struct {
-    qwm_dock_event_type type;
+    xp_dock_event_type type;
 
-    /* QWM_NULL_NATIVE_WINDOW_ID terminated list of windows affected by this event */
-    qwm_native_window_id *windows;
+    /* XP_NULL_NATIVE_WINDOW_ID terminated list of windows affected by this event */
+    xp_native_window_id *windows;
 
-    /* YES if the event was successful (for QWM_DOCK_EVENT_RESTORE_DONE and QWM_DOCK_EVENT_MINIMIZE_DONE) */
-    BOOL success;
-} qwm_dock_event;
+    /* YES if the event was successful (for XP_DOCK_EVENT_RESTORE_DONE and XP_DOCK_EVENT_MINIMIZE_DONE) */
+    xp_bool success;
+} xp_dock_event;
 
-typedef void (*qwm_dock_event_handler)(qwm_dock_event *event);
-extern void qwm_dock_event_set_handler(qwm_dock_event_handler new_handler);
+typedef void (*xp_dock_event_handler)(xp_dock_event *event);
+#endif
 
+extern xp_dock_orientation qwm_dock_get_orientation(void);
+extern xp_box qwm_dock_get_rect(void);
+
+/* Window Visibility */
+extern xp_error qwm_dock_is_window_visible(xp_native_window_id osxwindow_id, xp_bool *is_visible);
+
+/* Minimize / Restore */
+extern xp_error qwm_dock_minimize_item_with_title_async(xp_native_window_id osxwindow_id, const char * title);
+extern xp_error qwm_dock_restore_item_async(xp_native_window_id osxwindow_id);
+extern xp_error qwm_dock_remove_item(xp_native_window_id osxwindow_id);
+
+/* Window dragging */
+extern xp_error qwm_dock_drag_begin(xp_native_window_id osxwindow_id);
+extern xp_error qwm_dock_drag_end(xp_native_window_id osxwindow_id);
+
+/* Initialization */
+extern void qwm_dock_init(bool only_proxy);
+extern void qwm_dock_event_set_handler(xp_dock_event_handler new_handler);
+
+#endif /* XPLUGIN_DOCK_SUPPORT */
 #endif /* __DOCK_SUPPORT_H__ */

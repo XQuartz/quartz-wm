@@ -21,13 +21,17 @@
 
 bin_PROGRAMS = quartz-wm
 
-AM_CPPFLAGS = -I$(top_srcdir)/lib
+AM_CPPFLAGS = -I$(top_srcdir)/lib -DXP_NO_X_HEADERS
 AM_OBJCFLAGS = $(QUARTZWM_CFLAGS) $(CWARNFLAGS)
 AM_CFLAGS = $(QUARTZWM_CFLAGS) $(CWARNFLAGS)
 
 quartz_wm_LDFLAGS = $(QUARTZWM_LIBS) \
-	-L$(top_builddir)/lib -lquartz-wm-ds \
 	-framework AppKit
+
+#AM_CPPFLAGS += -DXPLUGIN_DOCK_SUPPORT
+#quartz_wm_LDFLAGS += -lXplugin
+
+quartz_wm_LDFLAGS += -L$(top_builddir)/lib -lquartz-wm-ds
 
 quartz_wm_SOURCES = \
 	dock-support-handler.m \
