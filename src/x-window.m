@@ -246,7 +246,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _frame_id = 0;
         _tracking_id = 0;
         _growbox_id = 0;
-        _osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _osx_id = XP_NULL_NATIVE_WINDOW_ID;
     }
 
     /* Mark us as not transient of a parent */
@@ -975,14 +975,14 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     [self update_shape:[self frame_outer_rect]];
 }
 
-- (qwm_native_window_id) get_osx_id
+- (xp_native_window_id) get_osx_id
 {
-    if (_osx_id == QWM_NULL_NATIVE_WINDOW_ID) {
+    if (_osx_id == XP_NULL_NATIVE_WINDOW_ID) {
         Window xwindow_id = [self toplevel_id];
         long data;
 
         if (x_get_property (xwindow_id, atoms.native_window_id, &data, 1, 1))
-            _osx_id = (qwm_native_window_id) data;
+            _osx_id = (xp_native_window_id) data;
 
         DB("Window 0x%lx with frame 0x%lx has a new _osx_id: %u", _id, _frame_id, _osx_id);
     }
@@ -1682,7 +1682,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     /* We do this outside of the change-check since get_osx_id can be NULL during init or
      * can change when we change XP_FRAME_CLASS_DECOR.
      */
-    if([self get_osx_id] != QWM_NULL_NATIVE_WINDOW_ID) {
+    if([self get_osx_id] != XP_NULL_NATIVE_WINDOW_ID) {
         if(_XAppleWMAttachTransient) {
             Window transient_frame_id = _transient_for ? _transient_for->_frame_id : 0;
             _XAppleWMAttachTransient(x_dpy, _frame_id, transient_frame_id);
@@ -1718,7 +1718,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
               atom == atoms.wm_protocols) {
         [self update_frame];
     } else if (atom == atoms.native_window_id) {
-        _osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _osx_id = XP_NULL_NATIVE_WINDOW_ID;
 
         /* XAppleWMAttachTransient needs to be called again when the native_window_id changes
          *
@@ -2113,7 +2113,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     if (!success) {
         _minimized = NO;
-        _minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _minimized_osx_id = XP_NULL_NATIVE_WINDOW_ID;
         return;
     }
 
@@ -2126,8 +2126,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) do_collapse
 {
-    qwm_native_window_id wid;
+    xp_native_window_id wid;
     OSStatus err;
+    char *title_c;
 
     DB ("_minimized: %s _animating: %s", _minimized ? "YES" : "NO", _animating ? "YES" : "NO");
 
@@ -2135,10 +2136,15 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         return;
 
     wid = [self get_osx_id];
-    if (wid == QWM_NULL_NATIVE_WINDOW_ID)
+    if (wid == XP_NULL_NATIVE_WINDOW_ID)
         return;
 
-    err = qwm_dock_minimize_item_with_title_async (wid, (CFStringRef) _title);
+    title_c = strdup([_title UTF8String]);
+    assert(title_c);
+
+    err = qwm_dock_minimize_item_with_title_async (wid, title_c);
+    free(title_c);
+
     if (err == noErr)
     {
         _animating = YES;
@@ -2176,7 +2182,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     _minimized = NO;
 
-    if (_minimized_osx_id == QWM_NULL_NATIVE_WINDOW_ID)
+    if (_minimized_osx_id == XP_NULL_NATIVE_WINDOW_ID)
         return;
 
     [self map_unmap_client];
@@ -2201,7 +2207,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     if (err == noErr) {
         _animating = YES;
-        _minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _minimized_osx_id = XP_NULL_NATIVE_WINDOW_ID;
         [self set_wm_state:NormalState];
         [self send_configure];
 
@@ -2233,10 +2239,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     /* Called when we're terminating abnormally. Can't make any
      X protocol requests. */
 
-    if (_minimized_osx_id != QWM_NULL_NATIVE_WINDOW_ID)
+    if (_minimized_osx_id != XP_NULL_NATIVE_WINDOW_ID)
     {
         qwm_dock_remove_item (_minimized_osx_id);
-        _minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _minimized_osx_id = XP_NULL_NATIVE_WINDOW_ID;
     }
 }
 

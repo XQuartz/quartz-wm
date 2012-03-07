@@ -572,7 +572,7 @@ x_get_window (Window xwindow_id)
 }
 
 id
-x_get_window_by_osx_id (qwm_native_window_id osxwindow_id)
+x_get_window_by_osx_id (xp_native_window_id osxwindow_id)
 {
     x_list *node;
 
