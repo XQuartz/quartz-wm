@@ -434,7 +434,7 @@ window_level_less (const void *a, const void *b)
     x_window *w;
     x_list *sl;
     CGError err;
-    BOOL isVisible;
+    xp_bool isVisible;
 
     for(sl = _stacking_list; sl; sl = sl->next) {
         w = sl->data;
@@ -622,20 +622,20 @@ window_level_less (const void *a, const void *b)
     return nil;
 }
 
-- get_window_by_osx_id:(qwm_native_window_id)id
+- get_window_by_osx_id:(xp_native_window_id)osxwindow_id
 {
     x_list *node;
 
     for (node = _window_list; node != NULL; node = node->next)
     {
         x_window *w = node->data;
-        qwm_native_window_id wid;
+        xp_native_window_id wid;
         
         if (w->_deleted)
             continue;
         
         wid = [w get_osx_id];
-        if (id == wid)
+        if (osxwindow_id == wid)
             return w;
     }
 
@@ -648,13 +648,17 @@ window_level_less (const void *a, const void *b)
     X11Region win_region, title_region, dock_region;
     X11Region screen_region_no_dock;
     X11Rect title_rect, title_int_rect;
-    X11Rect ret;
+    X11Rect ret, dock_rect;
     pixman_box32_t *e;
-    
+    xp_box dock_box;
+
     // Figure out where the dock is to handle
     // <rdar://problem/7595340> X11 window can get lost under the dock
     // http://xquartz.macosforge.org/trac/ticket/329
-    X11Rect dock_rect = [self CGToX11Rect:qwm_dock_get_rect()];
+    dock_box = qwm_dock_get_rect();
+    dock_rect = [self CGToX11Rect:CGRectMake(dock_box.x1, dock_box.y1,
+                                             dock_box.x2 - dock_box.x1,
+                                             dock_box.y2 - dock_box.y1)];
     
     ret = title_rect = win_rect;
     title_rect.height = titlebar_height;
@@ -716,18 +720,18 @@ window_level_less (const void *a, const void *b)
 	} else {
 	    /* Window is partially behind our dock. */
             switch(qwm_dock_get_orientation()) {
-               case QWM_DOCK_ORIENTATION_BOTTOM:
-                   ret.y = dock_rect.y - titlebar_height;
-                   break;
-               case QWM_DOCK_ORIENTATION_LEFT:
-                   ret.x = dock_rect.x + dock_rect.width - ret.width + 40;
-                   break;
-               case QWM_DOCK_ORIENTATION_RIGHT:
-                   ret.x = dock_rect.x - 40;
-                   break;
-               default:
-                   fprintf(stderr, "Invalid response from qwm_dock_get_orientation()\n");
-                   break;
+                case XP_DOCK_ORIENTATION_BOTTOM:
+                    ret.y = dock_rect.y - titlebar_height;
+                    break;
+                case XP_DOCK_ORIENTATION_LEFT:
+                    ret.x = dock_rect.x + dock_rect.width - ret.width + 40;
+                    break;
+                case XP_DOCK_ORIENTATION_RIGHT:
+                    ret.x = dock_rect.x - 40;
+                    break;
+                default:
+                    fprintf(stderr, "Invalid response from qwm_dock_get_orientation()\n");
+                    break;
             }
 	}
 	pixman_region32_fini(&win_dock_int);
@@ -749,10 +753,10 @@ window_level_less (const void *a, const void *b)
 	for (i = 0; i < _head_count; i++) {
 	    X11Rect dpy_rect, intersection;
             int dock_bottom_height = 0;
-
-	    dpy_rect = _heads[i];
-
-            if(qwm_dock_get_orientation() == QWM_DOCK_ORIENTATION_BOTTOM &&
+            
+            dpy_rect = _heads[i];
+            
+            if(qwm_dock_get_orientation() == XP_DOCK_ORIENTATION_BOTTOM &&
                X11RectContainsPoint(dpy_rect, X11PointMake(dock_rect.x, dock_rect.y)))
                 dock_bottom_height = dock_rect.height;
             

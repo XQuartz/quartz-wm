@@ -83,9 +83,9 @@ extern void x_ungrab_server (void);
 extern void x_update_meta_modifier (void);
 extern void x_update_keymap (void);
 extern id x_get_screen (Screen *xs);
-extern id x_get_screen_with_root (Window id);
-extern id x_get_window (Window id);
-extern id x_get_window_by_osx_id (qwm_native_window_id id);
+extern id x_get_screen_with_root (Window xwindow_id);
+extern id x_get_window (Window xwindow_id);
+extern id x_get_window_by_osx_id (xp_native_window_id osxwindow_id);
 extern void x_set_active_window (id w);
 extern id x_get_active_window (void);
 extern void x_set_is_active (BOOL state);
@@ -181,7 +181,7 @@ extern struct atoms_struct_t atoms;
 
 /* Dock Events */
 #include "dock-support.h"
-extern void dock_event_handler(qwm_dock_event *event);
+extern void dock_event_handler(xp_dock_event *event);
 
 #ifdef DEBUG
 #define DB(msg, args...) debug_printf("%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args)

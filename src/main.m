@@ -565,7 +565,7 @@ x_get_window (Window id)
 }
 
 id
-x_get_window_by_osx_id (qwm_native_window_id id)
+x_get_window_by_osx_id (xp_native_window_id osxwindow_id)
 {
     x_list *node;
 
@@ -574,9 +574,9 @@ x_get_window_by_osx_id (qwm_native_window_id id)
 	x_screen *s = node->data;
 	x_window *w;
 
-	w = [s get_window_by_osx_id:id];
-	if (w != nil)
-	    return w;
+        w = [s get_window_by_osx_id:osxwindow_id];
+        if (w != nil)
+            return w;
     }
 
     return nil;

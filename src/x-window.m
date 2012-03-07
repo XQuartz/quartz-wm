@@ -265,7 +265,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
         _frame_id = 0;
         _tracking_id = 0;
         _growbox_id = 0;
-        _osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _osx_id = XP_NULL_NATIVE_WINDOW_ID;
     }
 
     /* Mark us as not transient of a parent */
@@ -988,15 +988,16 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     [self update_shape:[self frame_outer_rect]];
 }
 
-- (qwm_native_window_id) get_osx_id
+- (xp_native_window_id) get_osx_id
 {
-    if (_osx_id == QWM_NULL_NATIVE_WINDOW_ID) {
-	Window id = [self toplevel_id];
-	long data;
+    if (_osx_id == XP_NULL_NATIVE_WINDOW_ID) {
+        Window xwindow_id = [self toplevel_id];
+        long data;
 
-	/* FIXME: Add query to AppleWM? */
-	if (x_get_property (id, atoms.native_window_id, &data, 1, 1))
-	    _osx_id = (qwm_native_window_id) data;
+        if (x_get_property (xwindow_id, atoms.native_window_id, &data, 1, 1))
+            _osx_id = (xp_native_window_id) data;
+
+        DB("Window 0x%x with frame 0x%x has a new _osx_id: %u\n", _id, _frame_id, _osx_id);
     }
 
     return _osx_id;
@@ -1473,8 +1474,10 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
         }
     }
 
-    /* We do this outside of the change-check since get_osx_id can be NULL during init */
-    if([self get_osx_id] != QWM_NULL_NATIVE_WINDOW_ID) {
+    /* We do this outside of the change-check since get_osx_id can be NULL during init or
+     * can change when we change XP_FRAME_CLASS_DECOR.
+     */
+    if([self get_osx_id] != XP_NULL_NATIVE_WINDOW_ID) {
         if(_XAppleWMAttachTransient) {
             Window transient_frame_id = _transient_for ? _transient_for->_frame_id : 0;
             _XAppleWMAttachTransient(x_dpy, _frame_id, transient_frame_id);
@@ -1506,7 +1509,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     } else if (atom == atoms.wm_protocols) {
         [self update_wm_protocols];
     } else if (atom == atoms.native_window_id) {
-        _osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _osx_id = XP_NULL_NATIVE_WINDOW_ID;
     } else if (atom == atoms.net_wm_name) {
         [self update_wm_name];
     } else if (atom == atoms.wm_colormap_windows) {
@@ -1894,7 +1897,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     else
     {
 	_minimized = NO;
-	_minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+	_minimized_osx_id = XP_NULL_NATIVE_WINDOW_ID;
     }
 
     [self map_unmap_client];
@@ -1904,8 +1907,9 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 
 - (void) do_collapse
 {
-    qwm_native_window_id wid;
+    xp_native_window_id wid;
     OSStatus err;
+    char *title_c;
 
     TRACE ();
 
@@ -1913,10 +1917,15 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 	return;
 
     wid = [self get_osx_id];
-    if (wid == QWM_NULL_NATIVE_WINDOW_ID)
-	return;
+    if (wid == XP_NULL_NATIVE_WINDOW_ID)
+        return;
 
-    err = qwm_dock_minimize_item_with_title_async (wid, (CFStringRef) _title);
+    title_c = strdup([_title UTF8String]);
+    assert(title_c);
+
+    err = qwm_dock_minimize_item_with_title_async (wid, title_c);
+    free(title_c);
+
     if (err == noErr)
     {
 	_animating = YES;
@@ -1949,7 +1958,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     
     _minimized = NO;
 
-    if (_minimized_osx_id == QWM_NULL_NATIVE_WINDOW_ID)
+    if (_minimized_osx_id == XP_NULL_NATIVE_WINDOW_ID)
         return;
     
     [self map_unmap_client];
@@ -1974,7 +1983,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
 
     if (err == noErr) {
         _animating = YES;
-        _minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _minimized_osx_id = XP_NULL_NATIVE_WINDOW_ID;
         [self set_wm_state:NormalState];
         [self send_configure];
         
@@ -2006,10 +2015,10 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     /* Called when we're terminating abnormally. Can't make any
        X protocol requests. */
 
-    if (_minimized_osx_id != QWM_NULL_NATIVE_WINDOW_ID)
+    if (_minimized_osx_id != XP_NULL_NATIVE_WINDOW_ID)
     {
         qwm_dock_remove_item (_minimized_osx_id);
-        _minimized_osx_id = QWM_NULL_NATIVE_WINDOW_ID;
+        _minimized_osx_id = XP_NULL_NATIVE_WINDOW_ID;
     }
 }
 
