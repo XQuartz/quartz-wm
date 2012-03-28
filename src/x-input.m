@@ -269,7 +269,8 @@ x_event_button (XButtonEvent *e)
                 {
                     if (w->_shadable && window_shading)
                         [w do_toggle_shaded:e->time];
-                    else if (w->_frame_attr & XP_FRAME_ATTR_COLLAPSE)
+                    else if ((w->_frame_attr & XP_FRAME_ATTR_COLLAPSE) &&
+                             minimize_on_double_click)
                         [w do_collapse];
                 }
 

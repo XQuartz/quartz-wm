@@ -73,6 +73,7 @@ BOOL window_shading = NO;
 BOOL rootless = YES;
 BOOL auto_quit = NO;
 int auto_quit_timeout = 3;   /* Seconds to wait before auto-quiting */
+BOOL minimize_on_double_click = YES;
 
 XAppleWMSendPSNProcPtr _XAppleWMSendPSN;
 XAppleWMAttachTransientProcPtr _XAppleWMAttachTransient;
@@ -876,6 +877,7 @@ static inline void prefs_read(void) {
     rootless            = prefs_get_bool (CFSTR (PREFS_ROOTLESS), rootless);
     auto_quit           = prefs_get_bool (CFSTR (PREFS_AUTO_QUIT), auto_quit);
     auto_quit_timeout   = prefs_get_int (CFSTR (PREFS_AUTO_QUIT_TIMEOUT), auto_quit_timeout);
+    minimize_on_double_click = prefs_get_bool (CFSTR(PREFS_MINIMIZE_ON_DOUBLE_CLICK), minimize_on_double_click);
 }
 
 static void signal_handler_cb(CFRunLoopObserverRef observer,
@@ -916,6 +918,13 @@ static void signal_handler_cb_init(void) {
 
     CFRunLoopAddObserver(CFRunLoopGetCurrent(), ref, kCFRunLoopDefaultMode);
 }
+
+static void appearance_pref_changed_cb(CFNotificationCenterRef center, void *observer,
+                CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+    prefs_read();
+}
+
 
 /* Startup */
 
@@ -985,6 +994,9 @@ int main (int argc, const char *argv[]) {
     }
 
     signal_handler_cb_init();
+    CFNotificationCenterAddObserver(CFNotificationCenterGetDistributedCenter(),
+        NULL, appearance_pref_changed_cb, CFSTR("AppleNoRedisplayAppearancePreferenceChanged"),
+        NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     qwm_dock_event_set_handler(dock_event_handler);
     qwm_dock_init(_only_proxy);
     x_init ();
