@@ -190,8 +190,6 @@ x_event_button (XButtonEvent *e)
 
         if (e->type == ButtonPress)
         {
-            /* FIXME: double click on title bar should collapse window */
-
             if (buttons_pressed (e->state) == 0)
             {
                 /* First button press */
