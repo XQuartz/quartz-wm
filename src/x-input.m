@@ -300,7 +300,7 @@ x_event_motion_notify (XMotionEvent *e)
     }
     else
 #endif
-        if (e->window == w->_frame_id || e->window == w->_growbox_id)
+        if (e->window == pointer_state.down_id)
         {
             X11Point p, wp;
             X11Rect r;
