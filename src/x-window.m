@@ -420,7 +420,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 }
 
 -(xp_frame_class) get_xp_frame_class {
-    if(_fullscreen)
+    if(_fullscreen || _shaped_empty)
         return _frame_behavior | XP_FRAME_CLASS_DECOR_NONE;
     return _frame_behavior | _frame_decor;
 }
@@ -918,6 +918,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
                         &wws, &hws, &clip, &xbs, &ybs, &wbs, &hbs);
 
     _shaped = bounding ? YES : NO;
+    _shaped_empty = (bounding && (wws <= 0 || hws <= 0));
 }
 
 - (void) update_shape:(X11Rect)or
