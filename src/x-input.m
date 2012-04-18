@@ -689,7 +689,8 @@ x_event_shape_notify (XShapeEvent *e)
     if (w == nil || w->_id != e->window || e->kind != ShapeBounding)
         return;
 
-    w->_shaped = YES;
+    w->_shaped = e->shaped ? YES : NO;
+    w->_shaped_empty = (e->shaped && (e->width <= 0 || e->height <= 0));
 
     [w update_shape];
 }

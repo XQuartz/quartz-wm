@@ -63,6 +63,7 @@
 
     unsigned _reparented :1;
     unsigned _shaped :1;
+    unsigned _shaped_empty :1;
     unsigned _removed :1;
     unsigned _deleted :1;
     unsigned _focused :1;
