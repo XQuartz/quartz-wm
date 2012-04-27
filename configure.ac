@@ -42,10 +42,19 @@ AC_SUBST(QUARTZWM_CFLAGS)
 AC_SUBST(QUARTZWM_LIBS)
 
 AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=PATH], [Prefix to use for bundle identifiers (default: org.x)]),
-                               [ BUNDLE_ID_PREFIX="${withval}" ],
-                               [ BUNDLE_ID_PREFIX="org.x" ])
+                               [BUNDLE_ID_PREFIX="${withval}"],
+                               [BUNDLE_ID_PREFIX="org.x"])
 AC_SUBST([BUNDLE_ID_PREFIX])
 AC_DEFINE_UNQUOTED(BUNDLE_ID_PREFIX, "$BUNDLE_ID_PREFIX", [Prefix to use for bundle identifiers])
+
+AC_ARG_ENABLE(xplugin-dock-support, AS_HELP_STRING([--enable-xplugin-dock-support], [Enable using libXplugin directly for dock support (default: NO)]),
+                                    [XPLUGIN_DOCK_SUPPORT="${enableval}"],
+                                    [XPLUGIN_DOCK_SUPPORT="no"])
+AC_SUBST([XPLUGIN_DOCK_SUPPORT])
+if test "x$XPLUGIN_DOCK_SUPPORT" = "xyes"; then
+    AC_DEFINE(XPLUGIN_DOCK_SUPPORT, 1, [Use libXplugin directly for dock support])
+fi
+AM_CONDITIONAL(XPLUGIN_DOCK_SUPPORT, [test "x$XPLUGIN_DOCK_SUPPORT" = "xyes"])
 
 AC_OUTPUT([Makefile
 	   lib/Makefile
