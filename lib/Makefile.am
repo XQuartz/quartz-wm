@@ -26,6 +26,7 @@ LIBRARY_SYMLINK = libquartz-wm-ds.dylib
 all : $(LIBRARY_SYMLINK)
 
 $(LIBRARY_SYMLINK) : $(LIBRARY_BASENAME)
+	rm -f $@
 	ln -s $^ $@
 
 $(LIBRARY_BASENAME) : $(DIST_LIB)
