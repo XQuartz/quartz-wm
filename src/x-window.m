@@ -1920,7 +1920,7 @@ static xp_frame_class qwm_window_class_to_xp_frame_class(qwm_window_class class)
     if (wid == XP_NULL_NATIVE_WINDOW_ID)
         return;
 
-    title_c = strdup([_title UTF8String]);
+    title_c = strdup([[self title] UTF8String]);
     assert(title_c);
 
     err = qwm_dock_minimize_item_with_title_async (wid, title_c);
