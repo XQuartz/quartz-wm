@@ -125,31 +125,6 @@ the default value of __bundle_id_prefix__.X11 is used instead.
 .It DEBUG
 If this variable is set, debug logging will be printed to stderr in addition to asl.
 .El
-.Sh LEGACY
-.Nm
-also contains functionality to bridge between the system 
-pasteboard and the X server's
-.Ar PRIMARY
-and
-.Ar CLIPBOARD
-selections.  This is provided for legacy reasons and will be removed at
-a future release.  This functionality is superceded by 
-.Xr xpbproxy 1 .
-.Pp
-The following options are available to control this functionality:
-.Bl -tag -width indent
-.It Fl -only-proxy
-This option indicates that the program should not attempt to manage any
-of the display's screens. However the selection proxying features will
-still be enabled, meaning that a different window manager may be used,
-but cut and paste will work as if
-.Nm
-were running.
-.It Fl -no-pasteboard
-This option indicates that the program should not manage the cut and
-paste proxying.  This option is defaulted to on for newer X11 servers
-that support this functionality and off for older servers that do not.
-.El
 .Sh SEE ALSO
 .Xr X 7 ,
 .Xr Xquartz 1 ,
