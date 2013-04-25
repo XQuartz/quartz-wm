@@ -24,7 +24,7 @@ AC_INIT(quartz-wm,[1.3.1], [http://xquartz.macosforge.org],quartz-wm)
 AM_INIT_AUTOMAKE([foreign dist-bzip2 dist-xz])
 AM_MAINTAINER_MODE
 
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
 # Require xorg-macros: XORG_DEFAULT_OPTIONS
 m4_ifndef([XORG_MACROS_VERSION],
