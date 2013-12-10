@@ -2652,7 +2652,7 @@ decode_size_hints (XSizeHints *hints, int base[2], int min[2],
     if (_title != nil)
         return [NSString stringWithFormat:@"{x-window %@}", _title];
     else
-        return [NSString stringWithFormat:@"{x-window 0x%x}", _id];
+        return [NSString stringWithFormat:@"{x-window 0x%lx}", _id];
 }
 
 - (X11Rect) intended_frame
