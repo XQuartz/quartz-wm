@@ -967,7 +967,7 @@ int main (int argc, const char *argv[]) {
                    "Aqua window manager for X11.\n\n"
                    "--version                 Print the version string\n"
                    "--prefs-domain <domain>   Change the domain used for reading preferences\n"
-                   "                          (default: "BUNDLE_ID_PREFIX".X11)\n");
+                   "                          (default: %s)\n", app_prefs_domain);
             return 0;
         } else {
             fprintf(stderr, "usage: quartz-wm OPTIONS...\n"
