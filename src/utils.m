@@ -107,7 +107,7 @@ x_get_string_property (Window xwindow_id, Atom atom)
         if (type == atoms.utf8_string)
             ret = [NSString stringWithUTF8String:(char *) data];
         else
-            ret = [NSString stringWithCString:(char *) data];
+            ret = [NSString stringWithCString:(char *) data encoding:NSASCIIStringEncoding];
     }
 
     XFree (data);
