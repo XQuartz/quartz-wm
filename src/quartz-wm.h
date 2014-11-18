@@ -77,10 +77,12 @@
 #define PREFS_AUTO_QUIT "wm_auto_quit"
 #define PREFS_AUTO_QUIT_TIMEOUT "wm_auto_quit_timeout"
 #define PREFS_MINIMIZE_ON_DOUBLE_CLICK "AppleMiniaturizeOnDoubleClick"
+#define PREFS_SHOW_SHORTCUT "wm_show_shortcut"
+#define PREFS_ENABLE_KEY_EQUIVALENTS "enable_key_equivalents"
 
 /* from main.m */
 extern x_list *screen_list;
-extern BOOL focus_follows_mouse, focus_click_through, limit_window_size, focus_on_new_window, window_shading, rootless, auto_quit, minimize_on_double_click;
+extern BOOL focus_follows_mouse, focus_click_through, limit_window_size, focus_on_new_window, window_shading, rootless, auto_quit, minimize_on_double_click, show_shortcut, enable_key_equivalents;
 extern int auto_quit_timeout;
 extern void x_grab_server (Bool do_sync);
 extern void x_ungrab_server (void);

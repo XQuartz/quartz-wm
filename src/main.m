@@ -69,6 +69,11 @@ BOOL rootless = YES;
 BOOL auto_quit = NO;
 int auto_quit_timeout = 3;   /* Seconds to wait before auto-quiting */
 BOOL minimize_on_double_click = YES;
+BOOL show_shortcut = NO;
+BOOL enable_key_equivalents = YES; /* quartz-wm doesn't use this per
+                                    * se, but it queries it so it knows
+                                    * not to display shortcuts when key
+                                    * equivalents are disabled. */
 
 aslclient aslc;
 
@@ -876,6 +881,8 @@ static inline void prefs_read(void) {
     auto_quit           = prefs_get_bool (CFSTR (PREFS_AUTO_QUIT), auto_quit);
     auto_quit_timeout   = prefs_get_int (CFSTR (PREFS_AUTO_QUIT_TIMEOUT), auto_quit_timeout);
     minimize_on_double_click = prefs_get_bool (CFSTR(PREFS_MINIMIZE_ON_DOUBLE_CLICK), minimize_on_double_click);
+    show_shortcut       = prefs_get_bool (CFSTR (PREFS_SHOW_SHORTCUT), show_shortcut);
+    enable_key_equivalents = prefs_get_bool (CFSTR (PREFS_ENABLE_KEY_EQUIVALENTS), enable_key_equivalents);
 }
 
 static void signal_handler_cb(CFRunLoopObserverRef observer,
@@ -902,6 +909,8 @@ static void signal_handler_cb(CFRunLoopObserverRef observer,
                         [w do_unshade:CurrentTime];
                     [w update_net_wm_action_property];
                 }
+
+                [w decorate];
             }
         }
     }

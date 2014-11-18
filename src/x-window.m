@@ -1043,7 +1043,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     _drawn_frame_decor = [self get_xp_frame_class] & XP_FRAME_CLASS_DECOR_MASK;
     
     draw_frame (_screen->_id, _frame_id, or, ir, [self get_xp_frame_class],
-                frame_attr, (CFStringRef) [self title]);
+                frame_attr, (CFStringRef) [self title], _shortcut_index);
 
     _decorated = YES;
     _pending_decorate = NO;

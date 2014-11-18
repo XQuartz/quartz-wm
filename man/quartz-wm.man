@@ -84,6 +84,8 @@ Automatically quit
 Set the timeout for the auto-quit feature.  If wm_auto_quit is true, quartz-wm
 will wait this many seconds before attempting to shutdown.  If another window
 is created in that time, quartz-wm will not shutdown.
+.It defaults write __bundle_id_prefix__.X11 wm_show_shortcut -bool true
+Show each window's key equivalent, if it has one, in its title bar.
 .El
 .Sh LOGGING
 .Pp

@@ -43,10 +43,24 @@ frame_titlebar_height (xp_frame_class class)
 
 void
 draw_frame (int screen, Window xwindow_id, X11Rect outer_r, X11Rect inner_r,
-            xp_frame_class class, xp_frame_attr attr, CFStringRef title)
+            xp_frame_class class, xp_frame_attr attr, CFStringRef title,
+            int shortcut_index)
 {
     unsigned char title_bytes[512];
     CFIndex title_length;
+    size_t prefix_length = 0;
+
+    if (show_shortcut && enable_key_equivalents)
+    {
+        if (shortcut_index > 0)
+        {
+            // E2 8C 98 = PLACE OF INTEREST SIGN
+            snprintf((char *)title_bytes, sizeof title_bytes, "\xE2\x8C\x98%d%s",
+                     shortcut_index, title == NULL ? "" : " - ");
+
+            prefix_length = strlen((char *)title_bytes);
+        }
+    }
 
     if (title == NULL)
         title_length = 0;
@@ -55,10 +69,12 @@ draw_frame (int screen, Window xwindow_id, X11Rect outer_r, X11Rect inner_r,
         /* FIXME: kind of lame */
         CFStringGetBytes (title, CFRangeMake (0, CFStringGetLength (title)),
                           kCFStringEncodingUTF8, 0,
-                          FALSE, title_bytes,
-                          sizeof (title_bytes),
+                          FALSE, title_bytes + prefix_length,
+                          sizeof (title_bytes) - prefix_length,
                           &title_length);
     }
+
+    title_length += prefix_length;
 
     DB("id: 0x%ld outer_r: (%d,%d %dx%d) inner_r: (%d,%d %dx%d) class: 0x%d attr: 0x%d title: %s",
        xwindow_id, outer_r.x, outer_r.y, outer_r.width, outer_r.height,
