@@ -299,9 +299,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
 - (void) validate_position {
     X11Rect r;
-    
+
     TRACE();
-    
+
     r = [_screen validate_window_position:_current_frame titlebar_height:_frame_title_height];
 
     if(r.x != _current_frame.x || r.y != _current_frame.y) {
@@ -312,7 +312,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) place_window {
     x_list *group, *order;
     X11Rect r;
-    
+
     TRACE();
 
     r = _current_frame;
@@ -375,8 +375,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
             DB("Check for room for r:(%d,%d %dx%d) zoom_rect:(%d,%d %dx%d)",
                r.x, r.y, r.width, r.height,
-               zoom_rect.x, zoom_rect.y, zoom_rect.width, zoom_rect.height);    
-            
+               zoom_rect.x, zoom_rect.y, zoom_rect.width, zoom_rect.height);
+
             /* No room */
             if(r.x + r.width > zoom_rect.width ||
                r.y + r.height > zoom_rect.height)
@@ -386,14 +386,14 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
                 DB("Nope.  Now at the origin: r:(%d,%d %dx%d) zoom_rect:(%d,%d %dx%d)",
                    r.x, r.y, r.width, r.height,
-                   zoom_rect.x, zoom_rect.y, zoom_rect.width, zoom_rect.height);    
-                
+                   zoom_rect.x, zoom_rect.y, zoom_rect.width, zoom_rect.height);
+
                 /* Shrink if there still isn't room */
                 if(r.x + r.width > zoom_rect.x +  zoom_rect.width)
                     r.width = zoom_rect.x + zoom_rect.width - r.x;
                 if(r.y + r.height > zoom_rect.y + zoom_rect.height)
                     r.height = zoom_rect.y + zoom_rect.height - r.y;
-                
+
             }
         }
         else
@@ -413,8 +413,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     x_list_free (order);
 
-    DB("r:(%d,%d %dx%d)", r.x, r.y, r.width, r.height);    
-    
+    DB("r:(%d,%d %dx%d)", r.x, r.y, r.width, r.height);
+
     r = [self validate_frame_rect:r from_user:NO constrain:NO];
     [self resize_frame:r];
 }
@@ -494,13 +494,13 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     _drawn_frame_decor = 0;
     _current_frame = X11EmptyRect;
-    
+
     _transient_for = NULL;
     _transient_for_id = _screen->_root;
     _transients = NULL;
 
     _fullscreen = NO;
-    
+
     DB ("initializing: %s", flag ? "YES" : "NO");
 
     XSelectInput(x_dpy, _id, X_CLIENT_WINDOW_EVENTS);
@@ -514,7 +514,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     /* Set the window name */
     [self update_wm_name];
-    
+
     /* Window grouping hints */
     [self update_parent];
     [self update_wm_hints];
@@ -525,7 +525,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     /* Update wm_protocols */
     [self update_wm_protocols];
-    
+
     /* Setup our look */
     _frame_attr = 0;
     [self update_frame];
@@ -598,7 +598,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         [self update_net_wm_state_property];
         return;
     }
-    
+
     if (resized)
         [_screen disable_update];
 
@@ -1041,7 +1041,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     /* Save the *decoration* of our last draw */
     _drawn_frame_decor = [self get_xp_frame_class] & XP_FRAME_CLASS_DECOR_MASK;
-    
+
     draw_frame (_screen->_id, _frame_id, or, ir, [self get_xp_frame_class],
                 frame_attr, (CFStringRef) [self title], _shortcut_index);
 
@@ -1164,7 +1164,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 - (void) update_size_hints
 {
     XGetWMNormalHints (x_dpy, _id, &_size_hints, &_size_hints_supplied);
-    
+
     if ((_size_hints.flags & (PMinSize | PMaxSize)) == (PMinSize | PMaxSize) &&
         _size_hints.min_width >= _size_hints.max_width &&
         _size_hints.min_height >= _size_hints.max_height) {
@@ -1184,7 +1184,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _atoms[n++] = atoms.net_wm_window_type_dialog;
     else
         _atoms[n++] = atoms.net_wm_window_type_normal;
-    
+
     for (i = 0; i < n; i++) {
         if((Atom)_atoms[i] == atoms.net_wm_window_type_combo ||
            (Atom)_atoms[i] == atoms.net_wm_window_type_dnd ||
@@ -1229,7 +1229,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
              * menubar. This property is typically used on override-redirect
              * windows.
              */
-            
+
             /* _NET_WM_WINDOW_TYPE_TOOLTIP indicates that the window in
              * question is a tooltip, ie., a short piece of explanatory text
              * that typically appear after the mouse cursor hovers over an
@@ -1312,7 +1312,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             /* _NET_WM_WINDOW_TYPE_SPLASH indicates that the window is a splash
              * screen displayed as an application is starting up.
              */
-            
+
             _always_click_through = YES;
             _frame_behavior = XP_FRAME_CLASS_BEHAVIOR_TRANSIENT;
             _frame_decor = XP_FRAME_CLASS_DECOR_NONE;
@@ -1323,7 +1323,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _shadable = NO;
 
             break;
-            
+
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_menu ||
                    (Atom)_atoms[i] == atoms.net_wm_window_type_toolbar) {
             /* _NET_WM_WINDOW_TYPE_TOOLBAR and _NET_WM_WINDOW_TYPE_MENU
@@ -1345,7 +1345,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             _resizable = NO;
             _shadable = NO;
 
-            break;            
+            break;
         } else if ((Atom)_atoms[i] == atoms.net_wm_window_type_utility) {
             /* _NET_WM_WINDOW_TYPE_UTILITY indicates a small persistent utility
              * window, such as a palette or toolbox. It is distinct from type
@@ -1414,7 +1414,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     int n_atoms = 0;
 
     TRACE();
-    
+
     if(_modal)
         _atoms[n_atoms++] = atoms.net_wm_state_modal;
     if(_minimized)
@@ -1445,9 +1445,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
      * _NET_WM_STATE_ADD           1    add/set property
      * _NET_WM_STATE_TOGGLE        2    toggle property
      */
-    
+
     DB("Atom: %s Action: %s", str_for_atom(state), mode ? (mode == 1 ? "_NET_WM_STATE_ADD" : "_NET_WM_STATE_TOGGLE") : "_NET_WM_STATE_REMOVE");
-    
+
     if(state == atoms.net_wm_state_shaded) {
         if (mode == 0 || (mode == 2 && _shaded))
             [self do_unshade:CurrentTime];
@@ -1572,7 +1572,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     int old_level = _level;
 
     TRACE();
-    
+
     /* Start with the default set. */
     _always_click_through = NO;
     _frame_attr  |= (XP_FRAME_ATTR_CLOSE_BOX | XP_FRAME_ATTR_COLLAPSE | XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
@@ -1584,24 +1584,24 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     _movable = YES;
     _resizable = YES;
     _shadable = YES;
-    
+
     [self update_size_hints]; // Can set !_resizable
     [self update_motif_hints];
     [self update_net_wm_type_hints];
     [self update_net_wm_state_hints];
-    
+
     /* Handle determined properties */
     if(_modal) {
         _in_window_menu = NO;
         _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_COLLAPSE);
     }
-    
+
     if(!_resizable) {
         _frame_attr &= ~(XP_FRAME_ATTR_ZOOM | XP_FRAME_ATTR_GROW_BOX);
     }
 
     _frame_title_height = frame_titlebar_height([self get_xp_frame_class]);
-    
+
     /* Notify listeners about our updated properties */
     [self update_net_wm_action_property];
     DB("update_net_wm_state_property from update_frame");
@@ -1610,7 +1610,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     /* Only adjust if we're already reparented */
     if(_reparented) {
         xp_frame_class pending_frame_decor = [self get_xp_frame_class] & XP_FRAME_CLASS_DECOR_MASK;
-        
+
         DB("id: 0x%lx frame_id: 0x%lx old decor: 0x%x new decor: 0x%x%s", _id,
            _frame_id, _drawn_frame_decor, pending_frame_decor,
            (pending_frame_decor == _drawn_frame_decor) ? "" : " FRAME CHANGE");
@@ -1619,15 +1619,15 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         if(pending_frame_decor != _drawn_frame_decor) {
             BOOL need_resize_frame = (_pending_frame_change || _queued_frame_change);
             X11Rect new_frame_size;
-            
+
             if(_queued_frame_change)
                 new_frame_size = _queued_frame;
             else if(_pending_frame_change)
                 new_frame_size = _pending_frame;
-            
+
             [self reparent_out];
             [self reparent_in];
-            
+
             if(need_resize_frame)
                 [self resize_frame:new_frame_size force:YES];
 
