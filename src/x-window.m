@@ -476,8 +476,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
             break;
     }
 
-    DB("Window %ul gravity: %s %d,%d %dx%d -> %d,%d %dx%d",
-       (unsigned int)_id, gravity_type(_size_hints.win_gravity),
+    DB("Window %lx gravity: %s %d,%d %dx%d -> %d,%d %dx%d",
+       (unsigned long)_id, gravity_type(_size_hints.win_gravity),
        (int)winrect.x, (int)winrect.y, (int)winrect.width, (int)winrect.height,
        x, y, (int)winrect.width + x_pad_l + x_pad_r, (int)winrect.height + y_pad_t + y_pad_b);
 
