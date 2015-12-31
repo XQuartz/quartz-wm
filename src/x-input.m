@@ -581,13 +581,17 @@ x_event_configure_notify (XConfigureEvent *e)
     x_window *w;
     x_screen *s;
 
-    if (e->send_event)
+    if (e->send_event) {
+        DB("Received ConfigureNotify for %lx from a SendEvent request, ignoring", e->window);
         return;
+    }
 
     w = x_get_window (e->window);
 
     if (w != nil)
     {
+        DB("Received ConfigureNotify for %lx->%lx (%d,%d) %dx%d", e->window, w->_id, e->x, e->y, e->width, e->height);
+
         X11Rect r = X11RectMake (e->x, e->y, e->width, e->height);
 
         if (e->window == w->_frame_id)
@@ -630,6 +634,8 @@ static void x_event_configure_request(XConfigureRequestEvent *e) {
         client_changes.width = e->width;
         client_changes.height = e->height;
 
+        DB("Calling XConfigureWindow: window: %lx, (%d,%d)", e->window, e->x, e->y);
+
         XConfigureWindow (x_dpy, e->window, e->value_mask, &client_changes);
 
         return;
@@ -667,15 +673,25 @@ static void x_event_configure_request(XConfigureRequestEvent *e) {
         if (e->value_mask & CWHeight)
             client_rect.height = e->height;
 
+        if (e->value_mask & CWX) DB("The following XConfigureWindow will change the window's origin.x");
+        if (e->value_mask & CWY) DB("The following XConfigureWindow will change the window's origin.y");
+        if (e->value_mask & CWWidth) DB("The following XConfigureWindow will change the window's size.width");
+        if (e->value_mask & CWHeight) DB("The following XConfigureWindow will change the window's size.height");
+        DB("The following XConfigureWindow will move the client to: (%d,%d) %dx%d", client_rect.x, client_rect.y, client_rect.width, client_rect.height);
+
         [w resize_client:client_rect];
     }
 
     if(real_frame_mask) {
+        DB("Calling XConfigureWindow for frame: window: %lx", w->_frame_id);
+
         XConfigureWindow(x_dpy, w->_frame_id,
                          real_frame_mask, &real_frame_changes);
     }
 
     if(client_mask) {
+        DB("Calling XConfigureWindow for client: window: %lx", w->_id);
+
         XConfigureWindow(x_dpy, w->_id, client_mask, &client_changes);
     }
 }

@@ -197,6 +197,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
 
     BEFORE_LOCAL_MAP; // _frame_border_width
     XReparentWindow (x_dpy, _id, _frame_id, 0, _frame_title_height);
+
+    DB("Calling XLowerWindow for window %lx with frame %lx", _id, _frame_id);
+
     XLowerWindow (x_dpy, _id);
     AFTER_LOCAL_MAP;
 
@@ -235,6 +238,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     BEFORE_LOCAL_MAP;
     XReparentWindow(x_dpy, _id, _screen->_root, ir.x, ir.y);
     AFTER_LOCAL_MAP;
+
+    DB("Calling XSetWindowBorderWidth for widnow %lx", _id);
 
     XSetWindowBorderWidth(x_dpy, _id, _xattr.border_width);
     XRemoveFromSaveSet(x_dpy, _id);
@@ -305,6 +310,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     r = [_screen validate_window_position:_current_frame titlebar_height:_frame_title_height];
 
     if(r.x != _current_frame.x || r.y != _current_frame.y) {
+        DB("Calling XMoveWindow for window %lx (%d,%d)", _frame_id, r.x, r.y);
         XMoveWindow(x_dpy, _frame_id, r.x, r.y);
     }
 }
@@ -529,6 +535,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     /* Setup our look */
     _frame_attr = 0;
     [self update_frame];
+    DB("Calling XSetWindowBorderWidth for widnow %lx", _id);
     XSetWindowBorderWidth (x_dpy, _id, 0);
 
     /* Figure out our frame dimensions from XGetWindowAttributes if it wasn't
@@ -602,6 +609,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     if (resized)
         [_screen disable_update];
 
+    DB("Calling XMoveResizeWindow for frame %lx (%d,%d) %dx%d", _frame_id, (int) r.x, (int) r.y, (int) r.width, (int) r.height);
+
     XMoveResizeWindow (x_dpy, _frame_id,
                        (int) r.x, (int) r.y,
                        (int) r.width, (int) r.height);
@@ -653,6 +662,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
                 return;
 
             /* Moves can be pipelined. */
+            DB("Calling XMoveWindow for window %lx (%d,%d)", _frame_id, r.x, r.y);
             XMoveWindow(x_dpy, _frame_id, (int) r.x, (int) r.y);
             _pending_frame.x = r.x;
             _pending_frame.y = r.y;
@@ -696,6 +706,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _xattr.height = _frame_height - _frame_title_height;
 
         DISABLE_EVENTS(_id, 0);
+        DB("Calling XResizeWindow for window %lx, %dx%d", _id, _xattr.width, _xattr.height)
         XResizeWindow(x_dpy, _id, _xattr.width, _xattr.height);
         ENABLE_EVENTS(_id, X_CLIENT_WINDOW_EVENTS);
 
@@ -742,6 +753,8 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _xattr.y = r.y;
         _xattr.width = r.width;
         _xattr.height = r.height;
+
+        DB("Calling XMoveResizeWindow for window %lx (%d,%d) %dx%d", _id, _xattr.x, _xattr.y, _xattr.width, _xattr.height);
 
         XMoveResizeWindow(x_dpy, _id, _xattr.x, _xattr.y,
                           _xattr.width, _xattr.height);
@@ -855,6 +868,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
                                       _tracking_rect.height,
                                       0, 0, InputOnly, _xattr.visual,
                                       CWOverrideRedirect, &attr);
+
+        DB("Calling XMapRaised for tracking id %lx", _tracking_id);
+
         XMapRaised (x_dpy, _tracking_id);
         XSelectInput (x_dpy, _tracking_id, X_TRACKING_WINDOW_EVENTS);
     }
@@ -884,6 +900,9 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
                                      0, _xattr.depth,
                                      InputOutput, _xattr.visual,
                                      attr_mask, &attr);
+
+        DB("Calling XMapRaised for growbox id %lx", _growbox_id);
+
         XMapRaised (x_dpy, _growbox_id);
         XSelectInput (x_dpy, _growbox_id, X_GROWBOX_WINDOW_EVENTS);
     }
@@ -900,6 +919,7 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
         _growbox_rect.x = or.width - _growbox_rect.width;
         _growbox_rect.y = or.height - _growbox_rect.height;
 #endif
+        DB("Calling XMoveResizeWindow for growbox %lx (%d,%d) %dx%d", _growbox_id, _growbox_rect.x, _growbox_rect.y, _growbox_rect.width, _growbox_rect.height);
         XMoveResizeWindow (x_dpy, _growbox_id,
                            _growbox_rect.x,
                            _growbox_rect.y,

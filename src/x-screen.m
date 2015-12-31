@@ -361,6 +361,8 @@ window_level_less (const void *a, const void *b)
         }
     }
 
+    DB("Gonna call XRaiseWindow and XRestackWindows");
+
     if(_stacking_list != NULL)
         XRaiseWindow (x_dpy, ids[0]);
 	if (i > 1)
@@ -937,6 +939,7 @@ static inline BOOL MyNSPointInRect(NSPoint p, NSRect r) {
 
     if (i > 0)
     {
+        DB("Gonna call XRaiseWindow and XRestackWindows");
         XRaiseWindow (x_dpy, ids[0]);
         if (i > 1)
             XRestackWindows (x_dpy, ids, i);
