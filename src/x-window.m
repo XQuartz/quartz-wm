@@ -1714,9 +1714,10 @@ ENABLE_EVENTS (_id, X_CLIENT_WINDOW_EVENTS)
     } else if(atom == atoms.wm_hints) {
         [self update_wm_hints];
         [self update_group];
-    } else if(atom == atoms.wm_normal_hints ||
-              atom == atoms.wm_protocols) {
-        [self update_frame];
+    } else if(atom == atoms.wm_normal_hints) {
+        [self update_frame]; // calls [self update_size_hints]
+    } else if(atom == atoms.wm_protocols) {
+        [self update_wm_protocols];
     } else if (atom == atoms.native_window_id) {
         _osx_id = XP_NULL_NATIVE_WINDOW_ID;
 
